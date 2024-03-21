@@ -1,13 +1,15 @@
 from sqlalchemy import BigInteger
-from sqlalchemy.orm import mapped_column, Mapped
+from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from app.models import dto
 from app.models.database.base import Base
+from app.models.database.advertisement import Advertisment
 
 
 class User(Base):
     __tablename__ = "users"
     __mapper_args__ = {"eager_defaults": True}
+
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     tg_id: Mapped[int] = mapped_column(BigInteger, unique=True)
     first_name: Mapped[str]
@@ -15,6 +17,7 @@ class User(Base):
     username: Mapped[str | None]
     is_bot: Mapped[bool] = mapped_column(default=False)
     language_code: Mapped[str | None] = mapped_column(default=None)
+    advertisments: Mapped[list[Advertisment] | None ] = relationship('Advertisment', back_populates="user")
 
     def __repr__(self):
         rez = (
@@ -34,5 +37,5 @@ class User(Base):
             last_name=self.last_name,
             username=self.username,
             is_bot=self.is_bot,
-            language_code=self.language_code
+            language_code=self.language_code,
         )

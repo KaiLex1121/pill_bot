@@ -3,20 +3,29 @@ import logging
 
 from typing import Union
 
-from app.config.main_config import load_config, Config
 from aiogram import Bot, Dispatcher
-from app.handlers import user_handlers, admin_handlers
+from app.handlers.user import main_dialog, onboarding_dialog
 from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder, Redis
 from aiogram.fsm.storage.memory import MemoryStorage
-
+from aiogram.client.default import DefaultBotProperties
+from aiogram.types import LinkPreviewOptions
+from aiogram.enums.parse_mode import ParseMode
 
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 
+from app.config.main_config import load_config, Config
+from app.handlers.admin import admin_handlers
 from app.middlewares.config import ConfigMiddleware
 from app.middlewares.redis import RedisMiddleware
 from app.middlewares.database import DBMiddleware
 from app.middlewares.data_loader import LoadDataMiddleware
 from app.models.database.base import create_pool
+
+
+def setup_handlers(dp: Dispatcher):
+    dp.include_router(onboarding_dialog.router)
+    dp.include_router(main_dialog.router)
+    dp.include_router(admin_handlers.router)
 
 
 def setup_middlewares(
@@ -58,11 +67,15 @@ async def main() -> None:
 
     config = load_config('.env')
     storage = get_storage(config=config)
-    bot = Bot(config.tg_bot.token)
+    bot = Bot(
+        config.tg_bot.token,
+        default=DefaultBotProperties(
+            link_preview=LinkPreviewOptions(is_disabled=True),
+            parse_mode=ParseMode.HTML,
+        ),
+    )
     dp = Dispatcher(storage=storage)
-
-    dp.include_router(user_handlers.router)
-    dp.include_router(admin_handlers.router)
+    setup_handlers(dp)
     setup_middlewares(dp, create_pool(config.db), config, storage.redis)
 
     await bot.delete_webhook(drop_pending_updates=True)

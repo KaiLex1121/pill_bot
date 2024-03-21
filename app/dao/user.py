@@ -16,7 +16,10 @@ class UserDAO(BaseDAO[User]):
         super().__init__(User, session)
 
     async def get_by_tg_id(self, tg_id: int) -> User:
-        result = await self.session.execute(select(User).where(User.tg_id == tg_id))
+        result = await self.session.execute(
+            select(User)
+            .where(User.tg_id == tg_id)
+        )
         return result.scalar_one()
 
     async def get_for_seven_days(self) -> list[User]:
@@ -35,7 +38,6 @@ class UserDAO(BaseDAO[User]):
         )
         return result.scalar_one()
 
-
     async def upsert_user(self, user: dto.User) -> dto.User:
         kwargs = dict(
             tg_id=user.tg_id,
@@ -45,12 +47,13 @@ class UserDAO(BaseDAO[User]):
             is_bot=user.is_bot,
             language_code=user.language_code,
         )
+
         saved_user = await self.session.execute(
             insert(User)
-            .values(**kwargs)
+            .values(**kwargs, updated_at=func.now())
             .on_conflict_do_update(
                 index_elements=(User.tg_id,),
-                set_=kwargs,
+                set_=dict(**kwargs, updated_at=func.now()),
                 where=User.tg_id == user.tg_id,
             )
             .returning(User)
