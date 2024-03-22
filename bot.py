@@ -72,7 +72,7 @@ async def main() -> None:
         default=DefaultBotProperties(
             link_preview=LinkPreviewOptions(is_disabled=True),
             parse_mode=ParseMode.HTML,
-        ),
+        )
     )
     dp = Dispatcher(storage=storage)
     setup_handlers(dp)
