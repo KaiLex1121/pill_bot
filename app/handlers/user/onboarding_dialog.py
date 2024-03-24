@@ -3,7 +3,7 @@ from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
-from app.text.user.messages import OnboardingText
+from app.text.user.onboarding_text import OnboardingText
 from app.keyboards.user.onboarding_keyboards import OnboardingKeyboards
 from app.states.user.main_states import MainDialogStates
 

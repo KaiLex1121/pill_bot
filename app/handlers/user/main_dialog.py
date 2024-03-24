@@ -8,7 +8,8 @@ from app.states.user.main_states import MainDialogStates
 from app.keyboards.user.main_keyboards import MainKeyboards
 from app.dao.holder import HolderDAO
 from app.models import dto
-from app.text.user.messages import OnboardingText
+from app.text.user.onboarding_text import OnboardingText
+from app.text.user.main_text import MainDialogText
 
 router: Router = Router()
 router.message.filter(StateFilter(MainDialogStates.MAIN_DIALOG))
@@ -23,7 +24,7 @@ async def show_main_window(callback: CallbackQuery):
     except TelegramBadRequest:
         pass
     await callback.message.answer(
-        text="Главное менюㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ",
+        text=MainDialogText.main_window,
         reply_markup=MainKeyboards.main_window
     )
 
@@ -33,7 +34,7 @@ async def show_main_window(callback: CallbackQuery):
 )
 async def ads(callback: CallbackQuery,):
     await callback.message.edit_text(
-        text="Выбери нужноеㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ",
+        text=MainDialogText.ads_window,
         reply_markup=MainKeyboards.ads_window
     )
 
@@ -43,7 +44,7 @@ async def ads(callback: CallbackQuery,):
 )
 async def show_profile(callback: CallbackQuery):
     await callback.message.edit_text(
-        text="Профильㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ",
+        text=MainDialogText.profile_window,
         reply_markup=MainKeyboards.profile_window
     )
 
@@ -52,7 +53,7 @@ async def show_profile(callback: CallbackQuery):
 )
 async def show_user_ads(callback: CallbackQuery):
     await callback.message.edit_text(
-        text="Твои объявленияㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ",
+        text=MainDialogText.user_ads_window,
         reply_markup=MainKeyboards.show_user_ads
     )
 
@@ -71,7 +72,7 @@ async def show_created_ads(callback: CallbackQuery):
     F.data == 'show_like_ads'
 )
 async def show_liked_ads(callback: CallbackQuery):
-    await callback.message.edit_text(
+    await callback.message.answer(
         text="Лайкнутые объявленияㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ",
         reply_markup=MainKeyboards.profile_window
     )
