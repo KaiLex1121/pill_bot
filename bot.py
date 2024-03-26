@@ -4,7 +4,7 @@ import logging
 from typing import Union
 
 from aiogram import Bot, Dispatcher
-from app.handlers.user import main_dialog, onboarding_dialog
+from app.handlers.user import main_dialog, onboarding_dialog, ad_creation_dialog
 from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder, Redis
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.client.default import DefaultBotProperties
@@ -26,6 +26,7 @@ def setup_handlers(dp: Dispatcher):
     dp.include_router(onboarding_dialog.router)
     dp.include_router(main_dialog.router)
     dp.include_router(admin_handlers.router)
+    dp.include_router(ad_creation_dialog.router)
 
 
 def setup_middlewares(

@@ -18,11 +18,11 @@ class Advertisment(Base):
         ForeignKey("users.id", ondelete="CASCADE")
     )
     user: Mapped['User'] = relationship('User', back_populates="advertisments")
-    drugs: Mapped[list['Drug']] = relationship(back_populates="advertisment")
     ad_type: Mapped[TypeOfAd] = mapped_column(Enum(TypeOfAd))
+    city: Mapped[str] = mapped_column()
+    drugs: Mapped[list['Drug']] = relationship(back_populates="advertisment")
     delivery_type: Mapped[TypeOfDelivery] = mapped_column(Enum(TypeOfDelivery))
     constant_need: Mapped[bool] = mapped_column()
-    city: Mapped[str] = mapped_column()
     additional_text: Mapped[str] = mapped_column()
 
     def __repr__(self):

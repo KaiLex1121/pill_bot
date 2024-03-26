@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.filters import StateFilter
+from aiogram.filters import StateFilter, Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.exceptions import TelegramBadRequest
@@ -24,6 +24,14 @@ async def show_main_window(callback: CallbackQuery):
     except TelegramBadRequest:
         pass
     await callback.message.answer(
+        text=MainDialogText.main_window,
+        reply_markup=MainKeyboards.main_window
+    )
+
+
+@router.message(Command("main"))
+async def get_main_menu_by_command(message: Message):
+    await message.answer(
         text=MainDialogText.main_window,
         reply_markup=MainKeyboards.main_window
     )
@@ -109,17 +117,17 @@ async def back_to_menu(callback: CallbackQuery):
 
 
 
-@router.message()
-async def message_echo(message: Message, state: FSMContext):
-    state = await state.get_state()
-    await message.answer(
-        text=f"Message попал сюда c состоянием {state}"
-    )
+# @router.message()
+# async def message_echo(message: Message, state: FSMContext):
+#     state = await state.get_state()
+#     await message.answer(
+#         text=f"Message попал в main_dialog c состоянием {state}"
+#     )
 
 
-@router.callback_query()
-async def callback_echo(callback: CallbackQuery, state: FSMContext):
-    state = await state.get_state()
-    await callback.message.answer(
-        text=f"Callback попал сюда c состоянием {state}"
-    )
+# @router.callback_query()
+# async def callback_echo(callback: CallbackQuery, state: FSMContext):
+#     state = await state.get_state()
+#     await callback.message.answer(
+#         text=f"Callback попал в main_dialog c состоянием {state}"
+#     )
