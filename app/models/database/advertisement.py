@@ -6,7 +6,6 @@ from app.enums.advertisment.ad_type import TypeOfAd
 from app.enums.advertisment.delivery_type import TypeOfDelivery
 
 from .base import Base
-from .drug import Drug
 
 
 class Advertisment(Base):
@@ -20,10 +19,9 @@ class Advertisment(Base):
     user: Mapped['User'] = relationship('User', back_populates="advertisments")
     ad_type: Mapped[TypeOfAd] = mapped_column(Enum(TypeOfAd))
     city: Mapped[str] = mapped_column()
-    drugs: Mapped[list['Drug']] = relationship(back_populates="advertisment")
+    drugs: Mapped[str] = mapped_column()
     delivery_type: Mapped[TypeOfDelivery] = mapped_column(Enum(TypeOfDelivery))
-    constant_need: Mapped[bool] = mapped_column()
-    additional_text: Mapped[str] = mapped_column()
+    additional_text: Mapped[str | None] = mapped_column()
 
     def __repr__(self):
         rez = (

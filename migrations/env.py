@@ -1,20 +1,21 @@
-import os
 import asyncio
+import os
 import dotenv
 
-from alembic import context
 from logging.config import fileConfig
 
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+from alembic import context
 from app.models.database.base import Base
 from app.models.database.user import User
 from app.models.database.chat import Chat
+from app.models.database.advertisement import Advertisment
 
 
-# Load DB environments
+# Load and read DB environments
 dotenv.load_dotenv()
 db_user = os.getenv('POSTGRES_USER')
 db_pass = os.getenv('POSTGRES_PASSWORD')
@@ -30,6 +31,13 @@ config.set_main_option(
     "sqlalchemy.url",
     f"postgresql+asyncpg://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
 )
+
+# Docker config
+
+# config.set_main_option(
+#     "sqlalchemy.url",
+#     "postgresql+asyncpg://user:password@pg_database:5432/db_name"
+# )
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

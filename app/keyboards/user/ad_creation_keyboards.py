@@ -3,6 +3,10 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 class AdCreationButtons:
 
+    show_ad_preview = InlineKeyboardButton(
+        text='Показать анкету', callback_data="show_ad_preview"
+    )
+
     first_delivery_type = InlineKeyboardButton(
         text="Встреча", callback_data="meeting"
     )
@@ -25,6 +29,17 @@ class AdCreationButtons:
 
 
 class AdCreationKeyboards:
+
+    show_ad_preview = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                AdCreationButtons.show_ad_preview
+            ],
+            [
+                AdCreationButtons.to_main_menu
+            ]
+        ]
+    )
 
     fill_delivery_type = InlineKeyboardMarkup(
         inline_keyboard=[
