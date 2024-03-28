@@ -57,9 +57,11 @@ class AdCreationKeyboards:
         inline_keyboard=[
             [
                 AdCreationButtons.first_ad_type,
-                AdCreationButtons.second_ad_type,
+                AdCreationButtons.second_ad_type
             ],
-            [AdCreationButtons.to_main_menu],
+            [
+                AdCreationButtons.to_main_menu
+            ],
         ]
     )
 

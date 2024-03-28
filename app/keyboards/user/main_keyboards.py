@@ -3,6 +3,11 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 class MainButtons:
 
+
+    feedback = InlineKeyboardButton(
+        text="Обратная связь", callback_data="create_user_feedback"
+    )
+
     ads = InlineKeyboardButton(
         text="Объявления", callback_data="show_ads"
     )
@@ -50,7 +55,8 @@ class MainKeyboards:
         inline_keyboard=[
             [MainButtons.ads],
             [MainButtons.profile],
-            [MainButtons.rules]
+            [MainButtons.rules],
+            [MainButtons.feedback]
         ]
     )
 
