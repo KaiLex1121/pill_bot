@@ -56,7 +56,7 @@ async def send_text_message(message: Message, bot: Bot, state: FSMContext):
     else:
         await bot.send_message(
             chat_id=-1002080962591,
-            text=message.html_text + f"\n\n#id{message.from_user.id}"
+            text=message.html_text + f"\n\n@{message.from_user.username} (#id{message.from_user.id})"
         )
     await _render_main_menu(
         message, state, UserFeedbackCreationText.succesfull_creation
@@ -72,7 +72,7 @@ async def send_supported_media(message: Message, state: FSMContext):
     else:
         await message.copy_to(
             chat_id=-1002080962591,
-            caption=((message.caption or "") + f"\n\n#id{message.from_user.id}"),
+            caption=((message.caption or "") + f"\n\n@{message.from_user.username} (#id{message.from_user.id})"),
         )
     await _render_main_menu(
         message, state, UserFeedbackCreationText.succesfull_creation

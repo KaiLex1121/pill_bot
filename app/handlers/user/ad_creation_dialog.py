@@ -6,6 +6,7 @@ from aiogram.fsm.context import FSMContext
 from app.services.message_finder import find_message_to_delete
 from app.states.user.ad_creation_states import AdCreationStates
 from app.keyboards.user.ad_creation_keyboards import AdCreationKeyboards
+from app.text.user.ad_creation_text import AdCreationText
 
 from app.dao.holder import HolderDAO
 from app.models import dto
@@ -135,10 +136,17 @@ async def fill_additional_text(message: Message, state: FSMContext, bot: Bot):
     F.data == "show_ad_preview"
 )
 async def show_ad_preview(callback: CallbackQuery, state: FSMContext):
-    txt = await state.get_data()
+    dct = await state.get_data()
     await callback.message.delete()
     await callback.message.answer(
-        text=f"{txt}",
+        text=AdCreationText.show_ad_preview(
+            ad_type=dct['ad_type'],
+            city=dct['city'],
+            drugs=dct['drugs'],
+            delivery_type=dct['delivery_type'],
+            additional_text=dct['additional_text'],
+            username=callback.from_user.username
+        ),
         reply_markup=AdCreationKeyboards.to_main_menu
     )
     await state.set_state(AdCreationStates.FILL_ADDITIONAL_TEXT)

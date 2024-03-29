@@ -117,15 +117,6 @@ async def create_user_feedback(callback: CallbackQuery, state: FSMContext):
     await state.set_state(UserFeedbackCreationStates.FEEDBACK_CREATION)
 
 
-# @router.callback_query(
-#     F.data == 'to_main_menu'
-# )
-# async def back_to_menu(callback: CallbackQuery, state: FSMContext):
-#     await callback.message.delete()
-#     await state.set_state(MainDialogStates.MAIN_DIALOG)
-#     await show_main_window(callback)
-
-
 # @router.message()
 # async def message_echo(message: Message, state: FSMContext):
 #     state = await state.get_state()

@@ -27,12 +27,12 @@ from app.models.database.base import create_pool
 
 
 def setup_handlers(dp: Dispatcher):
+    dp.include_router(genereal_handlers.router)
     dp.include_router(onboarding_dialog.router)
     dp.include_router(main_dialog.router)
     dp.include_router(admin_handlers.router)
     dp.include_router(ad_creation_dialog.router)
     dp.include_router(user_feedback_creation.router)
-    dp.include_router(genereal_handlers.router)
 
 def setup_middlewares(
     dp: Dispatcher,

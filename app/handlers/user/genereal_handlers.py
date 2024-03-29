@@ -15,11 +15,24 @@ router: Router = Router()
 @router.callback_query(
     F.data == 'to_main_menu'
 )
-async def general_back_to_menu(callback: CallbackQuery, state: FSMContext):
+async def general_back_to_main_menu(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.answer(
             text=MainDialogText.main_window,
             reply_markup=MainKeyboards.main_window
         )
     await callback.message.delete()
+    await state.set_state(MainDialogStates.MAIN_DIALOG)
+
+
+@router.message(
+    Command("main_menu")
+)
+async def genereal_to_main_menu(message: Message, state: FSMContext):
+
+    await message.answer(
+            text=MainDialogText.main_window,
+            reply_markup=MainKeyboards.main_window
+        )
+    await message.delete()
     await state.set_state(MainDialogStates.MAIN_DIALOG)
