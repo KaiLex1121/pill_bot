@@ -4,6 +4,8 @@ from app.enums.advertisment.delivery_type import TypeOfDelivery
 
 class AdCreationText:
 
+    cancel_ad_creating: str = "Отменить создание объявления и вернуться в главное меню?"
+
     @staticmethod
     def show_ad_preview(
         ad_type: TypeOfAd,

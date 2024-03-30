@@ -5,9 +5,8 @@ from typing import Union
 
 from aiogram import Bot, Dispatcher
 from app.handlers.user import (
-    main_dialog, onboarding_dialog,
-    ad_creation_dialog, user_feedback_creation,
-    genereal_handlers
+    ad_creation_handlers, feedback_creation_handlers,
+    main_handlers, onboarding_handlers, genereal_handlers
 )
 from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder, Redis
 from aiogram.fsm.storage.memory import MemoryStorage
@@ -28,11 +27,12 @@ from app.models.database.base import create_pool
 
 def setup_handlers(dp: Dispatcher):
     dp.include_router(genereal_handlers.router)
-    dp.include_router(onboarding_dialog.router)
-    dp.include_router(main_dialog.router)
+    dp.include_router(onboarding_handlers.router)
+    dp.include_router(main_handlers.router)
     dp.include_router(admin_handlers.router)
-    dp.include_router(ad_creation_dialog.router)
-    dp.include_router(user_feedback_creation.router)
+    dp.include_router(ad_creation_handlers.router)
+    dp.include_router(feedback_creation_handlers.router)
+
 
 def setup_middlewares(
     dp: Dispatcher,

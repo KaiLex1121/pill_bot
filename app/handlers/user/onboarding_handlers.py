@@ -3,9 +3,9 @@ from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
-from app.text.user.onboarding_text import OnboardingText
-from app.keyboards.user.onboarding_keyboards import OnboardingKeyboards
-from app.states.user.main_states import MainDialogStates
+from app.text.user import OnboardingText
+from app.keyboards.user import OnboardingKeyboards
+from app.states.user import MainStates
 
 
 router: Router = Router()
@@ -42,4 +42,4 @@ async def view_second_rules(callback: CallbackQuery, state: FSMContext):
         text=OnboardingText.rules_two,
         reply_markup=OnboardingKeyboards.accept_second_rules,
     )
-    await state.set_state(MainDialogStates.MAIN_DIALOG)
+    await state.set_state(MainStates.MAIN_DIALOG)

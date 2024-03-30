@@ -1,4 +1,4 @@
-class UserFeedbackCreationText:
+class FeedbackCreationText:
 
     succesfull_creation: str = "Ваше сообщение доставлено. Спасибо большое за обратную связь!"
 

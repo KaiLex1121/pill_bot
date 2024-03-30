@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state
 
 from app.dao.holder import HolderDAO
-from app.services.broadcaster import broadcast
+from app.services.general import broadcast
 from app.filters import admin_filters
 
 

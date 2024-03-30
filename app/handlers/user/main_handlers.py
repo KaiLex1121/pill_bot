@@ -1,22 +1,18 @@
 from aiogram import Router, F
-from aiogram.filters import StateFilter, Command
-from aiogram.types import Message, CallbackQuery
+from aiogram.filters import StateFilter
+from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.exceptions import TelegramBadRequest
 
-from app.states.user.main_states import MainDialogStates
-from app.states.user.user_feedback_creation_states import UserFeedbackCreationStates
-from app.keyboards.user.main_keyboards import MainKeyboards
-from app.dao.holder import HolderDAO
-from app.models import dto
-from app.text.user.onboarding_text import OnboardingText
-from app.text.user.main_text import MainDialogText
-from app.keyboards.user.general_keyboards import GeneralKeyboards
+from app.states.user import MainStates
+from app.states.user import FeedbackCreationStates, AdCreationStates
+from app.keyboards.user import MainKeyboards, GeneralKeyboards
+from app.text.user import OnboardingText, MainText
 
 
 router: Router = Router()
-router.message.filter(StateFilter(MainDialogStates.MAIN_DIALOG))
-router.callback_query.filter(StateFilter(MainDialogStates.MAIN_DIALOG))
+router.message.filter(StateFilter(MainStates.MAIN_DIALOG))
+router.callback_query.filter(StateFilter(MainStates.MAIN_DIALOG))
 
 
 @router.callback_query(
@@ -28,7 +24,7 @@ async def show_main_window(callback: CallbackQuery):
     except TelegramBadRequest:
         pass
     await callback.message.answer(
-        text=MainDialogText.main_window,
+        text=MainText.main_window,
         reply_markup=MainKeyboards.main_window
     )
 
@@ -36,28 +32,29 @@ async def show_main_window(callback: CallbackQuery):
 @router.callback_query(
     F.data == 'show_ads'
 )
-async def ads(callback: CallbackQuery,):
+async def ads(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(
-        text=MainDialogText.ads_window,
+        text=MainText.ads_window,
         reply_markup=MainKeyboards.ads_window
     )
-
+    await state.set_state(AdCreationStates.AD_CREATION_STATE)
 
 @router.callback_query(
     F.data == 'show_profile'
 )
 async def show_profile(callback: CallbackQuery):
     await callback.message.edit_text(
-        text=MainDialogText.profile_window,
+        text=MainText.profile_window,
         reply_markup=MainKeyboards.profile_window
     )
+
 
 @router.callback_query(
     F.data == 'show_user_ads'
 )
 async def show_user_ads(callback: CallbackQuery):
     await callback.message.edit_text(
-        text=MainDialogText.user_ads_window,
+        text=MainText.user_ads_window,
         reply_markup=MainKeyboards.show_user_ads
     )
 
@@ -80,7 +77,6 @@ async def show_liked_ads(callback: CallbackQuery):
         text="Лайкнутые объявленияㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ",
         reply_markup=MainKeyboards.profile_window
     )
-
 
 
 @router.callback_query(
@@ -114,7 +110,7 @@ async def create_user_feedback(callback: CallbackQuery, state: FSMContext):
         text="Напшии обо всем, чем хочешь поделиться с администрацией проекта",
         reply_markup=GeneralKeyboards.to_main_menu
     )
-    await state.set_state(UserFeedbackCreationStates.FEEDBACK_CREATION)
+    await state.set_state(FeedbackCreationStates.FEEDBACK_CREATION)
 
 
 # @router.message()

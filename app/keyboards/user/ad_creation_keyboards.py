@@ -23,12 +23,35 @@ class AdCreationButtons:
         text="Отдам", callback_data="give"
     )
 
-    to_main_menu = InlineKeyboardButton(
-        text="В главное меню", callback_data="to_main_menu"
+    confirm_ad_creation = InlineKeyboardButton(
+        text="Сохранить объявление", callback_data="confirm_ad_creation"
+    )
+
+    cancel_ad_creation = InlineKeyboardButton(
+        text="В главное меню", callback_data="cancel_ad_creation"
+    )
+
+    yes_button = InlineKeyboardButton(
+        text="Да", callback_data="to_main_menu"
+    )
+
+    no_button = InlineKeyboardButton(
+        text="Нет", callback_data="to_current_handler"
     )
 
 
 class AdCreationKeyboards:
+
+    confirm_ad_creation = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                AdCreationButtons.confirm_ad_creation
+            ],
+            [
+                AdCreationButtons.cancel_ad_creation
+            ]
+        ]
+    )
 
     show_ad_preview = InlineKeyboardMarkup(
         inline_keyboard=[
@@ -36,7 +59,7 @@ class AdCreationKeyboards:
                 AdCreationButtons.show_ad_preview
             ],
             [
-                AdCreationButtons.to_main_menu
+                AdCreationButtons.cancel_ad_creation
             ]
         ]
     )
@@ -48,7 +71,7 @@ class AdCreationKeyboards:
                 AdCreationButtons.second_delivery_type
             ],
             [
-                AdCreationButtons.to_main_menu
+                AdCreationButtons.cancel_ad_creation
             ]
         ]
     )
@@ -60,7 +83,7 @@ class AdCreationKeyboards:
                 AdCreationButtons.second_ad_type
             ],
             [
-                AdCreationButtons.to_main_menu
+                AdCreationButtons.cancel_ad_creation
             ],
         ]
     )
@@ -68,7 +91,16 @@ class AdCreationKeyboards:
     to_main_menu = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                AdCreationButtons.to_main_menu
+                AdCreationButtons.cancel_ad_creation
+            ]
+        ]
+    )
+
+    confirm_returning = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                AdCreationButtons.yes_button,
+                AdCreationButtons.no_button
             ]
         ]
     )

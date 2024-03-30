@@ -1,4 +1,4 @@
-class MainDialogText:
+class MainText:
 
     main_window: str = """Это главное меню бота. Отсюда ты можешь попасть в следующие разделы:
 

@@ -1,21 +1,25 @@
-from asyncio import create_task, sleep
-
 from aiogram import Router, F, Bot
 from aiogram.filters import StateFilter
 from aiogram.types import ContentType
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 
+from app.states.user import FeedbackCreationStates, MainStates
 from app.filters.supported_media import SupportedMediaFilter
-from app.states.user.user_feedback_creation_states import UserFeedbackCreationStates
-from app.states.user.main_states import MainDialogStates
-from app.keyboards.user.main_keyboards import MainKeyboards
-from app.text.user.main_text import MainDialogText
-from app.text.user.user_feedback_creation_text import UserFeedbackCreationText
+from app.keyboards.user import MainKeyboards
+from app.text.user import MainText, FeedbackCreationText
+from app.services.user import render_response
+
 
 router = Router()
-router.message.filter(StateFilter(UserFeedbackCreationStates.FEEDBACK_CREATION))
-router.callback_query.filter(StateFilter(UserFeedbackCreationStates.FEEDBACK_CREATION))
+
+router.message.filter(
+    StateFilter(FeedbackCreationStates.FEEDBACK_CREATION)
+)
+
+router.callback_query.filter(
+    StateFilter(FeedbackCreationStates.FEEDBACK_CREATION)
+)
 
 
 async def _render_main_menu(
@@ -26,7 +30,7 @@ async def _render_main_menu(
             text=response,
         )
         await message.answer(
-            text=MainDialogText.main_window,
+            text=MainText.main_window,
             reply_markup=MainKeyboards.main_window
         )
     except AttributeError:
@@ -34,16 +38,16 @@ async def _render_main_menu(
             text=response
         )
         await message.message.answer(
-            text=MainDialogText.main_window,
+            text=MainText.main_window,
             reply_markup=MainKeyboards.main_window
         )
-    await state.set_state(MainDialogStates.MAIN_DIALOG)
+    await state.set_state(MainStates.MAIN_DIALOG)
 
 
 @router.callback_query(F.data == "to_main_menu")
 async def cancel_writing(message: Message, bot: Bot, state: FSMContext):
     await _render_main_menu(
-        message, state, UserFeedbackCreationText.unsuccesfull_creation
+        message, state, FeedbackCreationText.unsuccesfull_creation
     )
 
 
@@ -56,10 +60,10 @@ async def send_text_message(message: Message, bot: Bot, state: FSMContext):
     else:
         await bot.send_message(
             chat_id=-1002080962591,
-            text=message.html_text + f"\n\n@{message.from_user.username} (#id{message.from_user.id})"
+            text=render_response(message)
         )
     await _render_main_menu(
-        message, state, UserFeedbackCreationText.succesfull_creation
+        message, state, FeedbackCreationText.succesfull_creation
     )
 
 
@@ -72,10 +76,10 @@ async def send_supported_media(message: Message, state: FSMContext):
     else:
         await message.copy_to(
             chat_id=-1002080962591,
-            caption=((message.caption or "") + f"\n\n@{message.from_user.username} (#id{message.from_user.id})"),
+            caption=render_response(message, is_media=True),
         )
     await _render_main_menu(
-        message, state, UserFeedbackCreationText.succesfull_creation
+        message, state, FeedbackCreationText.succesfull_creation
     )
 
 
@@ -93,5 +97,5 @@ async def send_unsupported_types(message: Message, state: FSMContext):
             text="Этот тип сообщения не поддерживается"
         )
     await _render_main_menu(
-        message, state, UserFeedbackCreationText.succesfull_creation
+        message, state, FeedbackCreationText.succesfull_creation
     )

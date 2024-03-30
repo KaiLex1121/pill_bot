@@ -1,5 +1,5 @@
 from aiogram.filters.state import StatesGroup, State
 
 
-class MainDialogStates(StatesGroup):
+class MainStates(StatesGroup):
     MAIN_DIALOG = State()
