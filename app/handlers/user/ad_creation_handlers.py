@@ -10,16 +10,15 @@ from app.states.user import AdCreationStates
 from app.keyboards.user import AdCreationKeyboards
 from app.text.user import AdCreationText
 from app.dao.holder import HolderDAO
-from app.models import dto
-
+from app.filters import AdTypeFilter, DeliveryTypeFilter
+from app.enums.advertisment import TypeOfDelivery, TypeOfAd
+from app.models.dto.user import User
 
 router: Router = Router()
 
 
-
 @router.callback_query(F.data == "create_ad")
 async def create_ad(callback: CallbackQuery, state: FSMContext):
-    print(await state.get_state())
     await callback.message.edit_text(
         text="Выбери тип объявления. Ищешь лекарство или хочешь отдать",
         reply_markup=AdCreationKeyboards.fill_ad_type
@@ -28,19 +27,21 @@ async def create_ad(callback: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(
-    and_f(
-        StateFilter(AdCreationStates.FILL_ADD_TYPE),
-        or_f(F.data == "take", F.data == "give")
-    )
+    StateFilter(AdCreationStates.FILL_ADD_TYPE),
+    AdTypeFilter()
 )
-async def fill_ad_type(callback: CallbackQuery, state: FSMContext):
+async def fill_ad_type(
+    callback: CallbackQuery,
+    state: FSMContext,
+    ad_type_enum: TypeOfAd
+):
     message_to_delete = await callback.message.edit_text(
         text="Укажи свой или ближайший крупный город, это повысит шансы быть найденным",
         reply_markup=AdCreationKeyboards.to_main_menu
     )
     await state.update_data(
         {
-            'ad_type': callback.data,
+            'ad_type': ad_type_enum.value,
             'message_to_delete': message_to_delete.message_id
         }
     )
@@ -80,7 +81,7 @@ async def fill_city(message: Message, state: FSMContext, bot: Bot):
     F.text
 )
 async def fill_drugs(message: Message, state: FSMContext, bot: Bot):
-    next_message_to_delete = await message.answer(
+    await message.answer(
         text="Выбери, как хочешь получить или отдать лекарства",
         reply_markup=AdCreationKeyboards.fill_delivery_type
     )
@@ -102,19 +103,21 @@ async def fill_drugs(message: Message, state: FSMContext, bot: Bot):
 
 
 @router.callback_query(
-    and_f(
         StateFilter(AdCreationStates.FILL_DELIVERY_TYPE),
-        or_f(F.data == "meeting", F.data == "delivery")
-    )
+        DeliveryTypeFilter()
 )
-async def fill_delivery_type(callback: CallbackQuery, state: FSMContext):
+async def fill_delivery_type(
+    callback: CallbackQuery,
+    state: FSMContext,
+    delivery_type_enum: TypeOfDelivery
+):
     message_to_delete = await callback.message.edit_text(
         text="Укажи что-то еще, что считаешь нужным",
         reply_markup=AdCreationKeyboards.to_main_menu
     )
     await state.update_data(
         {
-            'delivery_type': callback.data,
+            'delivery_type': delivery_type_enum.value,
             'message_to_delete': message_to_delete.message_id
         }
     )
@@ -173,13 +176,22 @@ async def show_ad_preview(callback: CallbackQuery, state: FSMContext):
     F.data == "confirm_ad_creation"
 )
 async def confirm_ad_creation(
-    callback: CallbackQuery, state: FSMContext, dao: HolderDAO
+    callback: CallbackQuery,
+    state: FSMContext,
+    dao: HolderDAO,
+    user: User
 ):
-    dct = await state.get_data()
+    print(user.db_id)
+    fsm_dict = await state.get_data()
+    await dao.advertisment.create_ad(
+        user_id=user.db_id,
+        FSM_dict=fsm_dict
+    )
     await callback.message.answer(
         text="Объявление сохраненно. Вы можете взаимодействовать с ним тут: Главное меню > Профиль > Мои бъявления > Созданные > выбираете нужное"
     )
     await general_back_to_main_menu(callback, state)
+
 
 @router.callback_query(
     F.data == "cancel_ad_creation"
@@ -192,28 +204,35 @@ async def cancel_ad_creation(callback: CallbackQuery, state: FSMContext):
 
 
 
-@router.callback_query(
-    F.data == "to_current_handler"
-)
-async def return_to_current_handler(callback: CallbackQuery, state: FSMContext, bot: Bot):
+# @router.callback_query(
+#     F.data == "to_current_handler",
+#     AdTypeFilter()
 
-    if await state.get_state() == AdCreationStates.FILL_ADD_TYPE:
-        await create_ad(callback, state)
+# )
+# async def return_to_current_handler(
+#     callback: CallbackQuery,
+#     state: FSMContext,
+#     bot: Bot,
+#     ad_type_enum
+# ):
 
-    elif await state.get_state() == AdCreationStates.FILL_CITY:
-        await fill_ad_type(callback, state)
+#     if await state.get_state() == AdCreationStates.FILL_ADD_TYPE:
+#         await create_ad(callback, state)
 
-    elif await state.get_state() == AdCreationStates.FILL_DRUGS:
-        await fill_city(callback.message, state, bot)
+#     elif await state.get_state() == AdCreationStates.FILL_CITY:
+#         await fill_ad_type(callback, state, ad_type_enum)
 
-    elif await state.get_state() == AdCreationStates.FILL_DELIVERY_TYPE:
-        await fill_drugs(callback.message, state, bot)
+#     elif await state.get_state() == AdCreationStates.FILL_DRUGS:
+#         await fill_city(callback.message, state, bot)
 
-    elif await state.get_state() == AdCreationStates.FILL_ADDITIONAL_TEXT:
-        await fill_delivery_type(callback, state)
+#     elif await state.get_state() == AdCreationStates.FILL_DELIVERY_TYPE:
+#         await fill_drugs(callback.message, state, bot)
 
-    elif await state.get_state() == AdCreationStates.SHOW_AD_PREVIEW:
-        await fill_additional_text(callback.message, state, bot)
+#     elif await state.get_state() == AdCreationStates.FILL_ADDITIONAL_TEXT:
+#         await fill_delivery_type(callback, state, ad_type_enum)
 
-    else:
-        await show_ad_preview(callback, state)
+#     elif await state.get_state() == AdCreationStates.SHOW_AD_PREVIEW:
+#         await fill_additional_text(callback.message, state, bot)
+
+#     else:
+#         await show_ad_preview(callback, state)

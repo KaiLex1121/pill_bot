@@ -14,9 +14,15 @@ class Advertisment(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE")
+        ForeignKey(
+            column="users.id",
+            ondelete="CASCADE"
+        )
     )
-    user: Mapped['User'] = relationship('User', back_populates="advertisments")
+    user: Mapped['User'] = relationship(
+        back_populates="advertisments",
+        lazy="joined"
+    )
     ad_type: Mapped[TypeOfAd] = mapped_column(Enum(TypeOfAd))
     city: Mapped[str] = mapped_column()
     drugs: Mapped[str] = mapped_column()

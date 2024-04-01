@@ -3,7 +3,6 @@ from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from app.models import dto
 from app.models.database.base import Base
-from app.models.database.advertisement import Advertisment
 
 
 class User(Base):
@@ -17,7 +16,10 @@ class User(Base):
     username: Mapped[str | None]
     is_bot: Mapped[bool] = mapped_column(default=False)
     language_code: Mapped[str | None] = mapped_column(default=None)
-    advertisments: Mapped[list[Advertisment] | None ] = relationship('Advertisment', back_populates="user")
+    advertisments: Mapped[list['Advertisment'] | None] = relationship(
+        back_populates="user",
+        lazy="selectin"
+    )
 
     def __repr__(self):
         rez = (

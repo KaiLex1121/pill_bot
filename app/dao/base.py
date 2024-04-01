@@ -20,7 +20,8 @@ class BaseDAO(Generic[Model]):
 
     async def get_by_id(self, id_: int) -> Model:
         result = await self.session.execute(
-            select(self.model).where(self.model.id == id_)
+            select(self.model)
+            .where(self.model.id == id_)
         )
         return result.scalar_one()
 

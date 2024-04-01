@@ -4,23 +4,29 @@ from sqlalchemy import and_, func
 from sqlalchemy.future import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from sqlalchemy.orm import joinedload, selectinload
 
 from app.dao.base import BaseDAO
-from app.models.database.user import User
+from app.models.database import User, Advertisment
 from app.models import dto
 
 
 class UserDAO(BaseDAO[User]):
+
     def __init__(self, session: AsyncSession):
         super().__init__(User, session)
+
+    async def get_all_user_ads_by_id(self, tg_id) -> list[Advertisment]:
+        user = await self.get_by_tg_id(tg_id)
+        return user.advertisments
 
     async def get_by_tg_id(self, tg_id: int) -> User:
         result = await self.session.execute(
             select(User)
             .where(User.tg_id == tg_id)
         )
-        return result.scalar_one()
+
+        return result.unique().scalar()
 
     async def get_for_seven_days(self) -> list[User]:
 

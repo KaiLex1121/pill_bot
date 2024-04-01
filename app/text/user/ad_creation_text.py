@@ -16,18 +16,8 @@ class AdCreationText:
         username: str | None
     ) -> str:
 
-        if ad_type == TypeOfAd.take.name:
-            ad_type = TypeOfAd.take.value.lower()
-        else:
-            ad_type = TypeOfAd.give.value.lower()
-
-        if delivery_type == TypeOfDelivery.meeting.name:
-            delivery_type = TypeOfDelivery.meeting.value
-        else:
-            delivery_type = TypeOfDelivery.delivery.value
-
         text = f"""
-<b>Я:</b> {ad_type}
+<b>Я:</b> {ad_type} лекарство
 <b>Город:</b> {city}
 <b>Лекарства:</b> {drugs}
 <b>Способ доставки:</b> {delivery_type}

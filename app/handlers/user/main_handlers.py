@@ -8,6 +8,7 @@ from app.states.user import MainStates
 from app.states.user import FeedbackCreationStates, AdCreationStates
 from app.keyboards.user import MainKeyboards, GeneralKeyboards
 from app.text.user import OnboardingText, MainText
+from app.dao import HolderDAO
 
 
 router: Router = Router()
@@ -33,17 +34,19 @@ async def show_main_window(callback: CallbackQuery):
     F.data == 'show_ads'
 )
 async def ads(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text(
+    await callback.message.delete()
+    await callback.message.answer(
         text=MainText.ads_window,
         reply_markup=MainKeyboards.ads_window
     )
-    await state.set_state(AdCreationStates.AD_CREATION_STATE)
+    await state.set_state(AdCreationStates.ADS_WINDOW)
 
 @router.callback_query(
     F.data == 'show_profile'
 )
 async def show_profile(callback: CallbackQuery):
-    await callback.message.edit_text(
+    await callback.message.delete()
+    await callback.message.answer(
         text=MainText.profile_window,
         reply_markup=MainKeyboards.profile_window
     )
@@ -53,7 +56,8 @@ async def show_profile(callback: CallbackQuery):
     F.data == 'show_user_ads'
 )
 async def show_user_ads(callback: CallbackQuery):
-    await callback.message.edit_text(
+    await callback.message.delete()
+    await callback.message.answer(
         text=MainText.user_ads_window,
         reply_markup=MainKeyboards.show_user_ads
     )
@@ -62,7 +66,12 @@ async def show_user_ads(callback: CallbackQuery):
 @router.callback_query(
     F.data == 'show_created_ads'
 )
-async def show_created_ads(callback: CallbackQuery):
+async def show_created_ads(callback: CallbackQuery, user, dao: HolderDAO):
+    res = await dao.user.get_all_user_ads_by_id(user.tg_id)
+
+    for res in res:
+        print(res.__dict__)
+
     await callback.message.edit_text(
         text="Созданные объявленияㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ",
         reply_markup=MainKeyboards.profile_window
