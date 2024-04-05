@@ -1,3 +1,5 @@
+from asyncio import create_task, sleep
+
 from aiogram import Router, F, Bot
 from aiogram.filters import StateFilter, or_f, and_f
 from aiogram.types import Message, CallbackQuery
@@ -181,7 +183,6 @@ async def confirm_ad_creation(
     dao: HolderDAO,
     user: User
 ):
-    print(user.db_id)
     fsm_dict = await state.get_data()
     await dao.advertisment.create_ad(
         user_id=user.db_id,
