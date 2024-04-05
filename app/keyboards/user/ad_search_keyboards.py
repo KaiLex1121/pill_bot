@@ -21,23 +21,37 @@ class _AdSearchButtons:
     )
 
     show_next_ad = InlineKeyboardButton(
-        text="Показать следующее", callback_data="show_next_ad"
+        text="Следующее", callback_data="show_next_ad"
     )
 
-    show_next_ten_ads = InlineKeyboardButton(
-        text="Следующие десять", callback_data="show_ten_ads"
+    like = InlineKeyboardButton(
+        text="Лайк", callback_data="like"
+    )
+
+    report = InlineKeyboardButton(
+        text="Репорт", callback_data="report"
     )
 
 
 class AdSearchKeyboards:
 
-    search_method_selection = InlineKeyboardMarkup(
+    like_and_report = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                _AdSearchButtons.like,
+                _AdSearchButtons.report
+            ],
+        ]
+    )
+
+    ad_window = InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 _AdSearchButtons.show_next_ad,
             ],
             [
-                _AdSearchButtons.show_next_ten_ads
+                _AdSearchButtons.like,
+                _AdSearchButtons.report
             ],
             [
                 _AdSearchButtons.cancel_ad_search

@@ -81,17 +81,10 @@ async def confirm_ad_search(message: Message, state: FSMContext, bot: Bot):
 
 
 @router.callback_query(
-    F.data == "confirm_and_find_ads"
-)
-async def search_method_selection(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text(
-        text="Подобрали несколько объявлений по твоему запросу. Выбери, пожалуйста, нужное и нажми на одну из кнопок ниже",
-        reply_markup=AdSearchKeyboards.search_method_selection
-    )
-
-
-@router.callback_query(
     F.data == "show_next_ad"
+)
+@router.callback_query(
+    F.data == "confirm_and_find_ads"
 )
 async def show_next_ad(
     callback: CallbackQuery,
@@ -103,6 +96,7 @@ async def show_next_ad(
     offset_key = f"user:{callback.from_user.id}:user_offset"
     current_offset = await redis.get(offset_key)
     current_offset = int(current_offset) if current_offset else 0
+
     ad = await dao.advertisment.get_required_ads_by_limit(
         city=dct['city'],
         drugs=dct['drugs'],
@@ -113,7 +107,7 @@ async def show_next_ad(
         await redis.set(offset_key, current_offset + 1)
         await callback.message.answer(
             text=AdSearchText.show_ad_text(ad),
-            reply_markup=AdSearchKeyboards.search_method_selection
+            reply_markup=AdSearchKeyboards.ad_window
         )
     else:
         await redis.set(offset_key, 0)
@@ -122,18 +116,6 @@ async def show_next_ad(
             reply_markup=AdSearchKeyboards.to_main_menu
         )
     await callback.message.delete_reply_markup()
-
-
-@router.callback_query(
-    F.data == "show_ten_ads"
-)
-async def show_ten_ads(callback: CallbackQuery, state: FSMContext):
-
-    for number in range(0, 10):
-        await callback.message.answer(
-            text=f"Сообщение № {number}"
-        )
-    await search_method_selection(callback, state)
 
 
 @router.callback_query(
