@@ -38,12 +38,12 @@ async def fill_ad_type(
     ad_type_enum: TypeOfAd
 ):
     message_to_delete = await callback.message.edit_text(
-        text="Укажи свой или ближайший крупный город, это повысит шансы быть найденным",
+        text="Укажи свой или ближайший крупный город, чтобы твое объявление было легче найти",
         reply_markup=AdCreationKeyboards.to_main_menu
     )
     await state.update_data(
         {
-            'ad_type': ad_type_enum.value,
+            'ad_type': ad_type_enum,
             'message_to_delete': message_to_delete.message_id
         }
     )

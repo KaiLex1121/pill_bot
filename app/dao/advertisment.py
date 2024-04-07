@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.database import Advertisment
 from app.enums.advertisment import TypeOfDelivery, TypeOfAd
 from sqlalchemy.future import select
-from sqlalchemy import and_, func
+from sqlalchemy import and_, desc, func
 
 
 class AdvertismentDAO(BaseDAO[Advertisment]):
@@ -12,21 +12,22 @@ class AdvertismentDAO(BaseDAO[Advertisment]):
 
     async def get_required_ads_by_limit(
         self,
+        ad_type: str,
         drugs: str,
         city: str,
         offset_: int,
         limit_: int,
-
     ) -> Advertisment:
+        print(ad_type)
+        conditions = []
+        if ad_type != 'all_ad_types':
+            conditions.append(self.model.ad_type == TypeOfAd(ad_type))
+        conditions.append(self.model.city.like(f"%{city}%"))
+        conditions.append(self.model.drugs.like(f"%{drugs}%"))
         result = await self.session.execute(
             select(self.model)
-            .where(
-                and_(
-                    self.model.ad_type == "give",
-                    self.model.city.like(f"%{city}%"),
-                    self.model.drugs.like(f"%{drugs}%")
-                )
-            )
+            .where(*conditions)
+            .order_by(desc(self.model.created_at))
             .offset(offset_)
             .limit(limit_)
         )

@@ -15,6 +15,18 @@ class _AdSearchButtons:
         text="Нет", callback_data="to_current_handler"
     )
 
+    first_ad_type = InlineKeyboardButton(
+        text="Ищет", callback_data="take"
+    )
+
+    second_ad_type = InlineKeyboardButton(
+        text="Отдает", callback_data="give"
+    )
+
+    all_ad_types = InlineKeyboardButton(
+        text="Все", callback_data="all_ad_types"
+    )
+
     confirm_and_find_ads = InlineKeyboardButton(
         text="Искать объявления",
         callback_data="confirm_and_find_ads"
@@ -34,6 +46,20 @@ class _AdSearchButtons:
 
 
 class AdSearchKeyboards:
+
+    fill_ad_type = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                _AdSearchButtons.first_ad_type,
+                _AdSearchButtons.all_ad_types,
+                _AdSearchButtons.second_ad_type,
+
+            ],
+            [
+                _AdSearchButtons.cancel_ad_search
+            ],
+        ]
+    )
 
     like_and_report = InlineKeyboardMarkup(
         inline_keyboard=[

@@ -5,19 +5,34 @@ from aiogram.fsm.context import FSMContext
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.storage.redis import Redis
 
+from app.enums.advertisment.ad_type import TypeOfAd
 from app.states.user import AdSearchStates
 from app.keyboards.user import AdSearchKeyboards
 from app.text.user import AdSearchText
 from app.dao.holder import HolderDAO
-
+from app.filters import AdTypeFilter
 
 router: Router = Router()
 
 
+@router.callback_query(F.data == "find_ads")
+async def fill_ad_type(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text(
+        text="Выбери тип объявления. Ты хочешь посмотреть объявления тех, кто ищет лекарства, отдает их или все объявления",
+        reply_markup=AdSearchKeyboards.fill_ad_type
+    )
+    await state.set_state(AdSearchStates.FILL_CITY)
+
+
 @router.callback_query(
-    F.data == 'find_ads'
+    StateFilter(AdSearchStates.FILL_CITY),
+    AdTypeFilter()
 )
-async def fill_city(callback: CallbackQuery, state: FSMContext):
+async def fill_city(
+    callback: CallbackQuery,
+    state: FSMContext,
+    ad_type_enum: str
+):
     message_to_delete = await callback.message.edit_text(
         text="Введи город, в котором хочешь найти лекарство. Или укажи \
             ближайший крупный - это увеличит количество объявлений",
@@ -25,7 +40,8 @@ async def fill_city(callback: CallbackQuery, state: FSMContext):
     )
     await state.update_data(
         {
-            'message_to_delete': message_to_delete.message_id
+            'message_to_delete': message_to_delete.message_id,
+            'ad_type': ad_type_enum
         }
     )
 
@@ -43,7 +59,7 @@ async def fill_drugs(message: Message, state: FSMContext, bot: Bot):
         message_id=dct['message_to_delete']
     )
     message_to_delete = await message.answer(
-        text="Введи действующее вещество или название лекарства, которое хочешь найти",
+        text="Введи действующее вещество или название лекарства",
         reply_markup=AdSearchKeyboards.to_main_menu
     )
 
@@ -98,6 +114,7 @@ async def show_next_ad(
     current_offset = int(current_offset) if current_offset else 0
 
     ad = await dao.advertisment.get_required_ads_by_limit(
+        ad_type=dct['ad_type'],
         city=dct['city'],
         drugs=dct['drugs'],
         offset_=current_offset,
