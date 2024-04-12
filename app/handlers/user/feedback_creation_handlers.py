@@ -8,7 +8,7 @@ from app.states.user import FeedbackCreationStates, MainStates
 from app.filters.supported_media import SupportedMediaFilter
 from app.keyboards.user import MainKeyboards
 from app.text.user import MainText, FeedbackCreationText
-from app.services.user import render_response
+from app.services.user import render_response_text
 
 
 router = Router()
@@ -16,7 +16,6 @@ router = Router()
 router.message.filter(
     StateFilter(FeedbackCreationStates.FEEDBACK_CREATION)
 )
-
 router.callback_query.filter(
     StateFilter(FeedbackCreationStates.FEEDBACK_CREATION)
 )
@@ -60,7 +59,7 @@ async def send_text_message(message: Message, bot: Bot, state: FSMContext):
     else:
         await bot.send_message(
             chat_id=-1002080962591,
-            text=render_response(message)
+            text=render_response_text(message)
         )
     await _render_main_menu(
         message, state, FeedbackCreationText.succesfull_creation
@@ -76,7 +75,7 @@ async def send_supported_media(message: Message, state: FSMContext):
     else:
         await message.copy_to(
             chat_id=-1002080962591,
-            caption=render_response(message, is_media=True),
+            caption=render_response_text(message, is_media=True),
         )
     await _render_main_menu(
         message, state, FeedbackCreationText.succesfull_creation

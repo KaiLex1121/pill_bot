@@ -32,8 +32,8 @@ class MainButtons:
         text="Созданные", callback_data="show_created_ads"
     )
 
-    show_liked_ads = InlineKeyboardButton(
-        text="Избранные", callback_data="show_like_ads"
+    show_favorite_ads = InlineKeyboardButton(
+        text="Избранные", callback_data="show_favorite_ads"
     )
 
     rules = InlineKeyboardButton(
@@ -87,7 +87,7 @@ class MainKeyboards:
         inline_keyboard=[
             [
                 MainButtons.show_created_ads,
-                MainButtons.show_liked_ads
+                MainButtons.show_favorite_ads
             ],
             [
                 MainButtons.to_main_menu

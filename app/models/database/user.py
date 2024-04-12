@@ -20,6 +20,11 @@ class User(Base):
         back_populates="user",
         lazy="selectin"
     )
+    favorite_advertisements: Mapped[list['Advertisment']] = relationship(
+        secondary='favorite_ads',
+        back_populates='favorited_by',
+        lazy="selectin"
+    )
 
     def to_dto(self) -> dto.User:
         return dto.User(

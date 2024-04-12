@@ -23,6 +23,11 @@ class Advertisment(Base):
         back_populates="advertisments",
         lazy="joined"
     )
+    favorited_by: Mapped[list['User']] = relationship(
+        secondary='favorite_ads',
+        back_populates='favorite_advertisements',
+        lazy="selectin"
+    )
     ad_type: Mapped[TypeOfAd] = mapped_column(Enum(TypeOfAd))
     city: Mapped[str] = mapped_column()
     drugs: Mapped[str] = mapped_column()

@@ -16,8 +16,8 @@ class UserDAO(BaseDAO[User]):
     def __init__(self, session: AsyncSession):
         super().__init__(User, session)
 
-    async def get_all_user_ads_by_id(self, tg_id) -> list[Advertisment]:
-        user = await self.get_by_tg_id(tg_id)
+    async def get_all_user_ads_by_id(self, db_id) -> list[Advertisment]:
+        user = await self.get_by_id(db_id)
         return user.advertisments
 
     async def get_by_tg_id(self, tg_id: int) -> User:

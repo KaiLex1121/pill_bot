@@ -1,7 +1,7 @@
 from aiogram.types import Message
 
 
-def render_response(message: Message, is_media=False) -> str:
+def render_response_text(message: Message, is_media=False) -> str:
 
     response = None
 

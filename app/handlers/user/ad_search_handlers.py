@@ -5,22 +5,39 @@ from aiogram.fsm.context import FSMContext
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.storage.redis import Redis
 
-from app.enums.advertisment.ad_type import TypeOfAd
 from app.states.user import AdSearchStates
 from app.keyboards.user import AdSearchKeyboards
 from app.text.user import AdSearchText
 from app.dao.holder import HolderDAO
 from app.filters import AdTypeFilter
+from app.models.dto import User
+from app.states.user import AdCreationStates
 
 router: Router = Router()
 
 
-@router.callback_query(F.data == "find_ads")
+
+@router.callback_query(F.data == "to_current_handler")
+async def return_to_current_handler(callback: CallbackQuery, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state == AdSearchStates.FILL_CITY:
+        await fill_ad_type(callback, state)
+    elif current_state == AdSearchStates.FILL_DRUGS:
+        await fill_city(callback, state)
+
+
+@router.callback_query(
+    F.data == "find_ads",
+    StateFilter(AdCreationStates.ADS_WINDOW),
+)
 async def fill_ad_type(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text(
-        text="Выбери тип объявления. Ты хочешь посмотреть объявления тех, кто ищет лекарства, отдает их или все объявления",
-        reply_markup=AdSearchKeyboards.fill_ad_type
-    )
+    try:
+        await callback.message.edit_text(
+            text="Выбери тип объявления. Ты хочешь посмотреть объявления тех, кто ищет лекарства, отдает их или все объявления",
+            reply_markup=AdSearchKeyboards.fill_ad_type
+        )
+    except TelegramBadRequest:
+        pass
     await state.set_state(AdSearchStates.FILL_CITY)
 
 
@@ -31,19 +48,18 @@ async def fill_ad_type(callback: CallbackQuery, state: FSMContext):
 async def fill_city(
     callback: CallbackQuery,
     state: FSMContext,
-    ad_type_enum: str
 ):
     message_to_delete = await callback.message.edit_text(
-        text="Введи город, в котором хочешь найти лекарство. Или укажи \
-            ближайший крупный - это увеличит количество объявлений",
+        text="Введи город, в котором хочешь найти   лекарство. Или укажи ближайший крупный - это увеличит количество объявлений",
         reply_markup=AdSearchKeyboards.to_main_menu
     )
-    await state.update_data(
-        {
-            'message_to_delete': message_to_delete.message_id,
-            'ad_type': ad_type_enum
-        }
-    )
+    if callback.data != "to_current_handler":
+        await state.update_data(
+            {
+                'message_to_delete': message_to_delete.message_id,
+                'ad_type': callback.data
+            }
+        )
 
     await state.set_state(AdSearchStates.FILL_DRUGS)
 
@@ -134,11 +150,45 @@ async def show_next_ad(
         )
     await callback.message.delete_reply_markup()
 
+    await state.update_data(
+        {
+            'ad_id': ad.id
+        }
+    )
+
+
+@router.callback_query(
+    F.data == "add_to_favorite"
+)
+async def append_ad_to_favorites(
+    callback: CallbackQuery,
+    state: FSMContext,
+    dao: HolderDAO,
+    user: User
+):
+    dct = await state.get_data()
+    ad = await dao.advertisment.get_by_id(dct['ad_id'])
+    user = await dao.user.get_by_id(user.db_id)
+    user.favorite_advertisements.append(ad)
+    await dao.commit()
+    await callback.answer(
+        text="Объявление добавлено в Избранные"
+    )
 
 @router.callback_query(
     F.data == "cancel_ad_search"
 )
 async def cancel_ad_search(callback: CallbackQuery, state: FSMContext):
+    await callback.message.answer(
+        text=AdSearchText.cancel_ad_search,
+        reply_markup=AdSearchKeyboards.confirm_returning
+    )
+
+
+@router.callback_query(
+    F.data == "cancel_ad_search_filling"
+)
+async def cancel_ad_search_filling(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(
         text=AdSearchText.cancel_ad_search,
         reply_markup=AdSearchKeyboards.confirm_returning

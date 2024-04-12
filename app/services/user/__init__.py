@@ -1,2 +1,2 @@
-from .response_renderer import render_response
+from .response_renderer import render_response_text
 from .message_finder import find_message_to_delete

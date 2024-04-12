@@ -37,11 +37,11 @@ class _AdSearchButtons:
     )
 
     like = InlineKeyboardButton(
-        text="Лайк", callback_data="like"
+        text="В избранное", callback_data="add_to_favorite"
     )
 
     report = InlineKeyboardButton(
-        text="Репорт", callback_data="report"
+        text="Пожаловаться", callback_data="report_ad"
     )
 
 
