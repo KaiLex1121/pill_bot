@@ -8,10 +8,10 @@ class AdCreationText:
 
     @staticmethod
     def show_ad_preview(
-        ad_type: TypeOfAd,
+        ad_type: str,
         city: str,
         drugs: str,
-        delivery_type: TypeOfDelivery,
+        delivery_type: str,
         additional_text: str | None,
         username: str | None
     ) -> str:
@@ -19,10 +19,10 @@ class AdCreationText:
         text = f"""
 <b>Превью анкеты. Здесь можно посмотреть ее параметры и изменить их (в будущем, коненчно) </b>
 
-<b>Я:</b> {ad_type} лекарство
+Я <b>{TypeOfAd[ad_type].value.lower()}</b> таблеточки
 <b>Город:</b> {city}
 <b>Лекарства:</b> {drugs}
-<b>Способ доставки:</b> {delivery_type}
+<b>Способ доставки:</b> {TypeOfDelivery[delivery_type].value}
 <b>Дополнительная информация:</b> {additional_text}
 <b>Мой контакт:</b> @{username}
 """

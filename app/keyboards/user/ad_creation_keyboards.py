@@ -16,11 +16,11 @@ class AdCreationButtons:
     )
 
     first_ad_type = InlineKeyboardButton(
-        text="Возьму", callback_data="take"
+        text="Найти", callback_data="take"
     )
 
     second_ad_type = InlineKeyboardButton(
-        text="Отдам", callback_data="give"
+        text="Отдать", callback_data="give"
     )
 
     confirm_ad_creation = InlineKeyboardButton(
@@ -36,7 +36,7 @@ class AdCreationButtons:
     )
 
     no_button = InlineKeyboardButton(
-        text="Нет", callback_data="to_current_handler"
+        text="Нет", callback_data="to_current_creation_handler"
     )
 
 

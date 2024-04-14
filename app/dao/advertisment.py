@@ -18,12 +18,11 @@ class AdvertismentDAO(BaseDAO[Advertisment]):
         offset_: int,
         limit_: int,
     ) -> Advertisment:
-        print(ad_type)
         conditions = []
         if ad_type != 'all_ad_types':
-            conditions.append(self.model.ad_type == TypeOfAd(ad_type))
-        conditions.append(self.model.city.like(f"%{city}%"))
-        conditions.append(self.model.drugs.like(f"%{drugs}%"))
+            conditions.append(self.model.ad_type == TypeOfAd[ad_type])
+        conditions.append(self.model.city.ilike(f"%{city}%"))
+        conditions.append(self.model.drugs.ilike(f"%{drugs}%"))
         result = await self.session.execute(
             select(self.model)
             .where(*conditions)
@@ -37,11 +36,11 @@ class AdvertismentDAO(BaseDAO[Advertisment]):
     async def create_ad(self, user_id, FSM_dict: dict):
         new_ad = Advertisment(
             user_id=user_id,
-            ad_type=TypeOfAd(FSM_dict['ad_type']),
+            ad_type=TypeOfAd[FSM_dict['ad_type']],
             city=FSM_dict['city'],
             drugs=FSM_dict['drugs'],
-            delivery_type=TypeOfDelivery(FSM_dict['delivery_type']),
+            delivery_type=TypeOfDelivery[FSM_dict['delivery_type']],
             additional_text=FSM_dict['additional_text'],
         )
-        self.session.add(new_ad)
+        self.save(new_ad)
         await self.session.commit()

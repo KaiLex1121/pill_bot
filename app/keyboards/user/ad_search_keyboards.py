@@ -7,12 +7,16 @@ class _AdSearchButtons:
         text="В главное меню", callback_data="cancel_ad_search"
     )
 
+    cancel_ad_search_filling = InlineKeyboardButton(
+        text="В главное меню", callback_data="cancel_ad_search_filling"
+    )
+
     yes_button = InlineKeyboardButton(
         text="Да", callback_data="to_main_menu"
     )
 
     no_button = InlineKeyboardButton(
-        text="Нет", callback_data="to_current_handler"
+        text="Нет", callback_data="to_current_find_handler"
     )
 
     first_ad_type = InlineKeyboardButton(
@@ -56,21 +60,12 @@ class AdSearchKeyboards:
 
             ],
             [
-                _AdSearchButtons.cancel_ad_search
+                _AdSearchButtons.cancel_ad_search_filling
             ],
         ]
     )
 
-    like_and_report = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                _AdSearchButtons.like,
-                _AdSearchButtons.report
-            ],
-        ]
-    )
-
-    ad_window = InlineKeyboardMarkup(
+    found_ad_window = InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 _AdSearchButtons.show_next_ad,
@@ -91,7 +86,7 @@ class AdSearchKeyboards:
                 _AdSearchButtons.confirm_and_find_ads,
             ],
             [
-                _AdSearchButtons.cancel_ad_search
+                _AdSearchButtons.cancel_ad_search_filling
             ],
         ]
     )
@@ -99,7 +94,7 @@ class AdSearchKeyboards:
     to_main_menu = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                _AdSearchButtons.cancel_ad_search
+                _AdSearchButtons.cancel_ad_search_filling
             ]
         ]
     )

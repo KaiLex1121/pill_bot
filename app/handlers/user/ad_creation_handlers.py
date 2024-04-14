@@ -19,157 +19,187 @@ from app.models.dto.user import User
 router: Router = Router()
 
 
+@router.callback_query(
+    F.data == "to_current_creation_handler",
+)
+async def return_to_current_handler(
+    callback: CallbackQuery,
+    state: FSMContext,
+    bot: Bot,
+):
+    current_state = await state.get_state()
+    if current_state == AdCreationStates.FILL_CITY:
+        await fill_ad_type(callback, state)
+
+    elif await state.get_state() == AdCreationStates.FILL_DRUGS:
+        await fill_city(callback, state)
+
+    elif await state.get_state() == AdCreationStates.FILL_DELIVERY_TYPE:
+        await fill_drugs(callback.message, state, bot)
+
+    elif await state.get_state() == AdCreationStates.FILL_ADDITIONAL_TEXT:
+        await fill_delivery_type(callback.message, state, bot)
+
+    elif await state.get_state() == AdCreationStates.SHOW_AD_PREVIEW:
+        await fill_additional_text(callback, state)
+
+    elif await state.get_state() == AdCreationStates.CONFIRM_AD_CREATION:
+        await show_ad_preview(callback.message, state, bot)
+
+
 @router.callback_query(F.data == "create_ad")
-async def create_ad(callback: CallbackQuery, state: FSMContext):
+async def fill_ad_type(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(
-        text="Выбери тип объявления. Ищешь лекарство или хочешь отдать",
+        text="Выбери тип объявления. Хочешь найти таблетки или отдать",
         reply_markup=AdCreationKeyboards.fill_ad_type
     )
-    await state.set_state(AdCreationStates.FILL_ADD_TYPE)
+    await state.set_state(AdCreationStates.FILL_CITY)
 
 
 @router.callback_query(
-    StateFilter(AdCreationStates.FILL_ADD_TYPE),
+    StateFilter(AdCreationStates.FILL_CITY),
     AdTypeFilter()
 )
-async def fill_ad_type(
+async def fill_city(
     callback: CallbackQuery,
     state: FSMContext,
-    ad_type_enum: TypeOfAd
 ):
     message_to_delete = await callback.message.edit_text(
         text="Укажи свой или ближайший крупный город, чтобы твое объявление было легче найти",
         reply_markup=AdCreationKeyboards.to_main_menu
     )
-    await state.update_data(
-        {
-            'ad_type': ad_type_enum,
-            'message_to_delete': message_to_delete.message_id
-        }
-    )
-    await state.set_state(AdCreationStates.FILL_CITY)
+    if callback.data != "to_current_creation_handler":
+        await state.update_data(
+            {
+                'ad_type': callback.data,
+                'message_to_delete': message_to_delete.message_id
+            }
+        )
+    await state.set_state(AdCreationStates.FILL_DRUGS)
 
 
 @router.message(
-    StateFilter(AdCreationStates.FILL_CITY),
+    StateFilter(AdCreationStates.FILL_DRUGS),
     F.text,
 )
-async def fill_city(message: Message, state: FSMContext, bot: Bot):
-    next_message_to_delete = await message.answer(
-        text="Добавь лекарства, которые хочешь найти или отдать",
-        reply_markup=AdCreationKeyboards.to_main_menu
-    )
-    try:
-        current_message_to_delete = await find_message_to_delete(state)
-        await bot.delete_message(
+async def fill_drugs(message: Message, state: FSMContext, bot: Bot):
+
+    current_message_to_delete = await find_message_to_delete(state)
+
+    if message.text != AdCreationText.cancel_ad_creating:
+        message_to_delete = await message.answer(
+            text="Добавь лекарства, которые хочешь найти или отдать",
+            reply_markup=AdCreationKeyboards.to_main_menu
+        )
+        await bot.edit_message_reply_markup(
             chat_id=message.chat.id,
             message_id=current_message_to_delete
         )
-    except TelegramBadRequest:
-        await message.delete()
-    await state.set_state(AdCreationStates.FILL_DRUGS)
-
-    if message.text != AdCreationText.cancel_ad_creating:
         await state.update_data(
             {
                 'city': message.text,
-                'message_to_delete': next_message_to_delete.message_id
+                'message_to_delete': message_to_delete.message_id
             }
         )
+    else:
+        await message.edit_text(
+            text="Добавь лекарства, которые хочешь найти или отдать",
+            reply_markup=AdCreationKeyboards.to_main_menu
+        )
 
-# РАЗОБРАТЬСЯ ПОЧЕМУ ТУТ НЕ СРАБАТЫВАЕТ УДАЛЕНИЕ СООБЩЕНИЯ ИЗ ИЗ fill_city
+    await state.set_state(AdCreationStates.FILL_DELIVERY_TYPE)
+
+
 @router.message(
-    StateFilter(AdCreationStates.FILL_DRUGS),
+    StateFilter(AdCreationStates.FILL_DELIVERY_TYPE),
     F.text
 )
-async def fill_drugs(message: Message, state: FSMContext, bot: Bot):
-    await message.answer(
-        text="Выбери, как хочешь получить или отдать лекарства",
-        reply_markup=AdCreationKeyboards.fill_delivery_type
-    )
-    try:
-        current_message_to_delete = await find_message_to_delete(state)
-        await bot.delete_message(
+async def fill_delivery_type(message: Message, state: FSMContext, bot: Bot):
+    current_message_to_delete = await find_message_to_delete(state)
+
+    if message.text != AdCreationText.cancel_ad_creating:
+        await message.answer(
+            text="Выбери, как хочешь получить или отдать лекарства",
+            reply_markup=AdCreationKeyboards.fill_delivery_type
+        )
+        await bot.edit_message_reply_markup(
             chat_id=message.chat.id,
             message_id=current_message_to_delete
         )
-    except TelegramBadRequest:
-        await message.delete()
-    if message.text != AdCreationText.cancel_ad_creating:
         await state.update_data(
             {
                 'drugs': message.text,
             }
         )
-    await state.set_state(AdCreationStates.FILL_DELIVERY_TYPE)
+    else:
+        await message.edit_text(
+            text="Выбери, как хочешь получить или отдать лекарства",
+            reply_markup=AdCreationKeyboards.fill_delivery_type
+        )
+    await state.set_state(AdCreationStates.FILL_ADDITIONAL_TEXT)
 
 
 @router.callback_query(
-        StateFilter(AdCreationStates.FILL_DELIVERY_TYPE),
+        StateFilter(AdCreationStates.FILL_ADDITIONAL_TEXT),
         DeliveryTypeFilter()
 )
-async def fill_delivery_type(
+async def fill_additional_text(
     callback: CallbackQuery,
     state: FSMContext,
-    delivery_type_enum: TypeOfDelivery
 ):
     message_to_delete = await callback.message.edit_text(
         text="Укажи что-то еще, что считаешь нужным",
         reply_markup=AdCreationKeyboards.to_main_menu
     )
-    await state.update_data(
-        {
-            'delivery_type': delivery_type_enum.value,
-            'message_to_delete': message_to_delete.message_id
-        }
-    )
-    await state.set_state(AdCreationStates.FILL_ADDITIONAL_TEXT)
-
-
-@router.message(
-    StateFilter(AdCreationStates.FILL_ADDITIONAL_TEXT),
-    F.text
-)
-async def fill_additional_text(message: Message, state: FSMContext, bot: Bot):
-    try:
-        current_message_to_delete = await find_message_to_delete(state)
-        await bot.delete_message(
-            chat_id=message.chat.id,
-            message_id=current_message_to_delete
-        )
-    except TelegramBadRequest:
-        await message.delete()
-    next_message_to_delete = await message.answer(
-        text="Создание анкеты завершено. Показать ее?",
-        reply_markup=AdCreationKeyboards.show_ad_preview
-    )
-    if message.text != AdCreationText.cancel_ad_creating:
+    if callback.data != "to_current_creation_handler":
         await state.update_data(
             {
-                'additional_text': message.text,
-                'message_to_delete': next_message_to_delete.message_id
+                'delivery_type': callback.data,
+                'message_to_delete': message_to_delete.message_id
             }
         )
     await state.set_state(AdCreationStates.SHOW_AD_PREVIEW)
 
 
-@router.callback_query(
+@router.message(
     StateFilter(AdCreationStates.SHOW_AD_PREVIEW),
-    F.data == "show_ad_preview"
+    F.text
 )
-async def show_ad_preview(callback: CallbackQuery, state: FSMContext):
+async def show_ad_preview(message: Message, state: FSMContext, bot: Bot):
     dct = await state.get_data()
-    await callback.message.edit_text(
-        text=AdCreationText.show_ad_preview(
-            ad_type=dct['ad_type'],
-            city=dct['city'],
-            drugs=dct['drugs'],
-            delivery_type=dct['delivery_type'],
-            additional_text=dct['additional_text'],
-            username=callback.from_user.username
-        ),
-        reply_markup=AdCreationKeyboards.confirm_ad_creation
-    )
+    if message.text.strip() != AdCreationText.cancel_ad_creating:
+        await state.update_data(
+            {
+                'username': message.from_user.username
+            }
+        )
+        await bot.edit_message_reply_markup(
+            chat_id=message.chat.id,
+            message_id=dct['message_to_delete']
+        )
+        await message.answer(
+            text=AdCreationText.show_ad_preview(
+                ad_type=dct['ad_type'],
+                city=dct['city'],
+                drugs=dct['drugs'],
+                delivery_type=dct['delivery_type'],
+                additional_text=dct['additional_text'],
+                username=message.from_user.username
+            ),
+            reply_markup=AdCreationKeyboards.confirm_ad_creation
+        )
+    else:
+        await message.edit_text(
+            text=AdCreationText.show_ad_preview(
+                ad_type=dct['ad_type'],
+                city=dct['city'],
+                drugs=dct['drugs'],
+                delivery_type=dct['delivery_type'],
+                additional_text=dct['additional_text'],
+                username=dct['username']
+            ),
+            reply_markup=AdCreationKeyboards.confirm_ad_creation
+        )
     await state.set_state(AdCreationStates.CONFIRM_AD_CREATION)
 
 
@@ -202,38 +232,3 @@ async def cancel_ad_creation(callback: CallbackQuery, state: FSMContext):
         text=AdCreationText.cancel_ad_creating,
         reply_markup=AdCreationKeyboards.confirm_returning
     )
-
-
-
-# @router.callback_query(
-#     F.data == "to_current_handler",
-#     AdTypeFilter()
-
-# )
-# async def return_to_current_handler(
-#     callback: CallbackQuery,
-#     state: FSMContext,
-#     bot: Bot,
-#     ad_type_enum
-# ):
-
-#     if await state.get_state() == AdCreationStates.FILL_ADD_TYPE:
-#         await create_ad(callback, state)
-
-#     elif await state.get_state() == AdCreationStates.FILL_CITY:
-#         await fill_ad_type(callback, state, ad_type_enum)
-
-#     elif await state.get_state() == AdCreationStates.FILL_DRUGS:
-#         await fill_city(callback.message, state, bot)
-
-#     elif await state.get_state() == AdCreationStates.FILL_DELIVERY_TYPE:
-#         await fill_drugs(callback.message, state, bot)
-
-#     elif await state.get_state() == AdCreationStates.FILL_ADDITIONAL_TEXT:
-#         await fill_delivery_type(callback, state, ad_type_enum)
-
-#     elif await state.get_state() == AdCreationStates.SHOW_AD_PREVIEW:
-#         await fill_additional_text(callback.message, state, bot)
-
-#     else:
-#         await show_ad_preview(callback, state)

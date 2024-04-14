@@ -18,7 +18,7 @@ router: Router = Router()
     F.data == 'to_main_menu'
 )
 async def general_back_to_main_menu(callback: CallbackQuery, state: FSMContext):
-
+    await callback.message.edit_reply_markup()
     await callback.message.edit_text(
             text=MainText.main_window,
             reply_markup=MainKeyboards.main_window
