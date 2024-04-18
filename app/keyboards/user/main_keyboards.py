@@ -3,7 +3,6 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 class MainButtons:
 
-
     feedback = InlineKeyboardButton(
         text="Обратная связь", callback_data="create_user_feedback"
     )

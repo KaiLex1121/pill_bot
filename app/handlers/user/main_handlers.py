@@ -7,8 +7,9 @@ from aiogram.exceptions import TelegramBadRequest
 from app.states.user import MainStates
 from app.states.user import FeedbackCreationStates, AdCreationStates
 from app.keyboards.user import MainKeyboards, GeneralKeyboards
+from app.keyboards.admin import AdminMainKeyboards
 from app.text.user import OnboardingText, MainText
-
+from app.models.dto import User
 
 router: Router = Router()
 router.message.filter(StateFilter(MainStates.MAIN_DIALOG))
@@ -18,14 +19,18 @@ router.callback_query.filter(StateFilter(MainStates.MAIN_DIALOG))
 @router.callback_query(
     F.data == 'rules_accepted'
 )
-async def show_main_window(callback: CallbackQuery):
+async def show_main_window(callback: CallbackQuery, user: User):
     try:
         await callback.message.delete_reply_markup()
     except TelegramBadRequest:
         pass
+    if user.is_admin:
+        keyboard = AdminMainKeyboards.main_window
+    else:
+        keyboard = MainKeyboards.main_window
     await callback.message.answer(
         text=MainText.main_window,
-        reply_markup=MainKeyboards.main_window
+        reply_markup=keyboard
     )
 
 

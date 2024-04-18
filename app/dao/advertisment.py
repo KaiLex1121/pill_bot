@@ -3,12 +3,28 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.database import Advertisment
 from app.enums.advertisment import TypeOfDelivery, TypeOfAd
 from sqlalchemy.future import select
-from sqlalchemy import and_, desc, func
+from sqlalchemy import and_, desc, func, update
 
 
 class AdvertismentDAO(BaseDAO[Advertisment]):
     def __init__(self, session: AsyncSession):
         super().__init__(Advertisment, session)
+
+    async def hide_ad_by_id(self, ad_id):
+        await self.session.execute(
+            update(self.model)
+            .where(self.model.id == ad_id)
+            .values(is_hidden=True)
+        )
+        await self.commit()
+
+    async def unhide_ad_by_id(self, ad_id):
+        await self.session.execute(
+            update(self.model)
+            .where(self.model.id == ad_id)
+            .values(is_hidden=False)
+        )
+        await self.commit()
 
     async def get_required_ads_by_limit(
         self,
@@ -23,6 +39,7 @@ class AdvertismentDAO(BaseDAO[Advertisment]):
             conditions.append(self.model.ad_type == TypeOfAd[ad_type])
         conditions.append(self.model.city.ilike(f"%{city}%"))
         conditions.append(self.model.drugs.ilike(f"%{drugs}%"))
+        conditions.append(self.model.is_hidden == False)
         result = await self.session.execute(
             select(self.model)
             .where(*conditions)
@@ -30,8 +47,8 @@ class AdvertismentDAO(BaseDAO[Advertisment]):
             .offset(offset_)
             .limit(limit_)
         )
-        profile = result.scalars().first()
-        return profile
+        ad = result.scalars().first()
+        return ad
 
     async def create_ad(self, user_id, FSM_dict: dict):
         new_ad = Advertisment(

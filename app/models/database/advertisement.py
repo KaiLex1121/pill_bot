@@ -33,6 +33,7 @@ class Advertisment(Base):
     drugs: Mapped[str] = mapped_column()
     delivery_type: Mapped[TypeOfDelivery] = mapped_column(Enum(TypeOfDelivery))
     additional_text: Mapped[str | None] = mapped_column()
+    is_hidden: Mapped[bool] = mapped_column(default=False)
 
     def __repr__(self):
         rez = (

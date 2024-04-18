@@ -4,11 +4,6 @@ import logging
 from typing import Union
 
 from aiogram import Bot, Dispatcher
-from app.handlers.user import (
-    ad_creation_handlers, feedback_creation_handlers,
-    main_handlers, onboarding_handlers, genereal_handlers,
-    user_ads_handlers, ad_search_handlers
-)
 from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder, Redis
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.client.default import DefaultBotProperties
@@ -17,12 +12,19 @@ from aiogram.enums.parse_mode import ParseMode
 
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 
+from app.handlers.user import (
+    ad_creation_handlers, feedback_creation_handlers,
+    main_handlers, onboarding_handlers, genereal_handlers,
+    user_ads_handlers, ad_search_handlers
+)
+from app.handlers.admin import (
+    administration_main_handlers, moderation_handlers
+)
 from app.config.main_config import load_config, Config
-from app.handlers.admin import admin_handlers
-from app.middlewares.config import ConfigMiddleware
-from app.middlewares.redis import RedisMiddleware
-from app.middlewares.database import DBMiddleware
-from app.middlewares.data_loader import LoadDataMiddleware
+from app.middlewares import (
+    ConfigMiddleware, DBMiddleware,
+    RedisMiddleware, LoadDataMiddleware
+)
 from app.models.database.base import create_pool
 
 
@@ -30,11 +32,12 @@ def setup_handlers(dp: Dispatcher):
     dp.include_router(genereal_handlers.router)
     dp.include_router(onboarding_handlers.router)
     dp.include_router(main_handlers.router)
-    dp.include_router(admin_handlers.router)
     dp.include_router(ad_creation_handlers.router)
     dp.include_router(feedback_creation_handlers.router)
     dp.include_router(user_ads_handlers.router)
     dp.include_router(ad_search_handlers.router)
+    dp.include_router(administration_main_handlers.router)
+    dp.include_router(moderation_handlers.router)
 
 
 def setup_middlewares(

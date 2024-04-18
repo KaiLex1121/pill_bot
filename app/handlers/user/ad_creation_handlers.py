@@ -30,20 +30,15 @@ async def return_to_current_handler(
     current_state = await state.get_state()
     if current_state == AdCreationStates.FILL_CITY:
         await fill_ad_type(callback, state)
-
-    elif await state.get_state() == AdCreationStates.FILL_DRUGS:
+    elif current_state == AdCreationStates.FILL_DRUGS:
         await fill_city(callback, state)
-
-    elif await state.get_state() == AdCreationStates.FILL_DELIVERY_TYPE:
+    elif current_state == AdCreationStates.FILL_DELIVERY_TYPE:
         await fill_drugs(callback.message, state, bot)
-
-    elif await state.get_state() == AdCreationStates.FILL_ADDITIONAL_TEXT:
+    elif current_state == AdCreationStates.FILL_ADDITIONAL_TEXT:
         await fill_delivery_type(callback.message, state, bot)
-
-    elif await state.get_state() == AdCreationStates.SHOW_AD_PREVIEW:
+    elif current_state == AdCreationStates.SHOW_AD_PREVIEW:
         await fill_additional_text(callback, state)
-
-    elif await state.get_state() == AdCreationStates.CONFIRM_AD_CREATION:
+    elif current_state == AdCreationStates.CONFIRM_AD_CREATION:
         await show_ad_preview(callback.message, state, bot)
 
 

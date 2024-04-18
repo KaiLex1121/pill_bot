@@ -1,20 +1,23 @@
 from aiogram import Router, F, Bot
 from aiogram.filters import StateFilter
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import (
+    Message, CallbackQuery,
+    InlineKeyboardButton, InlineKeyboardMarkup
+)
 from aiogram.fsm.context import FSMContext
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.storage.redis import Redis
 
 from app.states.user import AdSearchStates
 from app.keyboards.user import AdSearchKeyboards
+from app.filters import AdTypeFilter, AdModerationCallbackFilter
 from app.text.user import AdSearchText
 from app.dao.holder import HolderDAO
-from app.filters import AdTypeFilter
 from app.models.dto import User
-from app.states.user import AdCreationStates
+from app.keyboards.admin import AdModerationKeyboards
+
 
 router: Router = Router()
-
 
 
 @router.callback_query(
@@ -60,7 +63,7 @@ async def fill_city(
     state: FSMContext,
 ):
     message_to_delete = await callback.message.edit_text(
-        text="Введи город, в котором хочешь найти   лекарство. Или укажи ближайший крупный - это увеличит количество объявлений",
+        text="Введи город, в котором хочешь найти лекарство. Или укажи ближайший крупный - это увеличит количество объявлений",
         reply_markup=AdSearchKeyboards.to_main_menu
     )
 
@@ -184,12 +187,13 @@ async def show_next_ad(
         )
         await state.update_data(
             {
-                'ad_id': ad.id
+                'ad_id': ad.id,
+                'ad_owner_id': ad.user.id
             }
         )
     elif not ad and callback.data == "confirm_and_find_ads":
         await callback.message.answer(
-            text=f"Объявлений с такими параметрами. Для выхода нажмите кнопку «В главное меню»",
+            text=f"Объявлений с такими параметрами нет. Для выхода нажми кнопку «В главное меню»",
             reply_markup=AdSearchKeyboards.to_main_menu
         )
     else:
@@ -223,9 +227,29 @@ async def append_ad_to_favorites(
     F.data == "report_ad"
 )
 async def report_ad(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    dct = await state.get_data()
+
+    ad_moderation = InlineKeyboardButton(
+        text='Модерация',
+        callback_data=AdModerationCallbackFilter(
+            callback_data='ad_moderation',
+            ad_owner_id=dct['ad_owner_id'],
+            ad_id=dct['ad_id']
+        ).pack()
+    )
+
+    ad_moderation_keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                ad_moderation
+            ]
+        ]
+    )
+
     await bot.send_message(
             chat_id=-4164822207,
-            text=callback.message.text
+            text=callback.message.text,
+            reply_markup=ad_moderation_keyboard
         )
     await callback.answer(
         text="Ваша жалоба отправлена. Спасибо!"

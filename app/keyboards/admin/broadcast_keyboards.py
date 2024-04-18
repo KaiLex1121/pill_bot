@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
-class AdminButtons:
+class AdminBroadcastButtons:
 
     get_back_button = InlineKeyboardButton(
         text="Назад", callback_data="get_back_button_pressed"
@@ -38,12 +38,12 @@ class AdminButtons:
     )
 
 
-class AdminKeyboards:
+class AdminBroadcastKeyboards:
 
     initial_keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                AdminButtons.make_broadcast_button
+                AdminBroadcastButtons.make_broadcast_button
             ],
         ]
     )
@@ -51,8 +51,8 @@ class AdminKeyboards:
     broadcast_preview_keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                AdminButtons.confirm_broadcast_button,
-                AdminButtons.cancel_broadcast_button
+                AdminBroadcastButtons.confirm_broadcast_button,
+                AdminBroadcastButtons.cancel_broadcast_button
 
             ],
         ]

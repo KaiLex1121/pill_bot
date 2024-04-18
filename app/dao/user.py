@@ -1,6 +1,6 @@
 from datetime import timedelta, datetime
 
-from sqlalchemy import and_, func
+from sqlalchemy import and_, func, update
 from sqlalchemy.future import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,6 +28,22 @@ class UserDAO(BaseDAO[User]):
 
         return result.unique().scalar()
 
+    async def ban_user_by_id(self, db_id):
+        await self.session.execute(
+            update(self.model)
+            .where(self.model.id == db_id)
+            .values(is_banned=True)
+        )
+        await self.commit()
+
+    async def unban_user_by_id(self, db_id):
+        await self.session.execute(
+            update(self.model)
+            .where(self.model.id == db_id)
+            .values(is_banned=False)
+        )
+        await self.commit()
+
     async def get_for_seven_days(self) -> list[User]:
 
         end_date = datetime.now()
@@ -52,14 +68,15 @@ class UserDAO(BaseDAO[User]):
             username=user.username,
             is_bot=user.is_bot,
             language_code=user.language_code,
+            updated_at=func.now(),
         )
 
         saved_user = await self.session.execute(
             insert(User)
-            .values(**kwargs, updated_at=func.now())
+            .values(**kwargs)
             .on_conflict_do_update(
                 index_elements=(User.tg_id,),
-                set_=dict(**kwargs, updated_at=func.now()),
+                set_=dict(**kwargs),
                 where=User.tg_id == user.tg_id,
             )
             .returning(User)

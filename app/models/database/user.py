@@ -15,6 +15,8 @@ class User(Base):
     last_name: Mapped[str | None]
     username: Mapped[str | None]
     is_bot: Mapped[bool] = mapped_column(default=False)
+    is_banned: Mapped[bool] = mapped_column(default=False)
+    is_admin: Mapped[bool] = mapped_column(default=False)
     language_code: Mapped[str | None] = mapped_column(default=None)
     advertisments: Mapped[list['Advertisment'] | None] = relationship(
         back_populates="user",
@@ -35,6 +37,8 @@ class User(Base):
             username=self.username,
             is_bot=self.is_bot,
             language_code=self.language_code,
+            is_admin=self.is_admin,
+            is_banned=self.is_banned
         )
 
     def __repr__(self):
