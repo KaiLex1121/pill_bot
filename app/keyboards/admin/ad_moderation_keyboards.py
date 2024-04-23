@@ -11,19 +11,19 @@ class AdModerationButtons:
     )
 
     ban_ad_owner = InlineKeyboardButton(
-        text="Бан", callback_data="ban_ad_owner"
+        text="Заблокировать пользователя", callback_data="ban_ad_owner"
     )
 
     unban_ad_owner = InlineKeyboardButton(
-        text="Разбан", callback_data="unban_ad_owner"
+        text="Разблокировать пользователя", callback_data="unban_ad_owner"
     )
 
     hide_ad = InlineKeyboardButton(
-        text="Удалить", callback_data="hide_ad"
+        text="Удалить объявление", callback_data="hide_ad"
     )
 
     unhide_ad = InlineKeyboardButton(
-        text="Восстановить", callback_data="unhide_ad"
+        text="Восстановить объявление", callback_data="unhide_ad"
     )
 
 

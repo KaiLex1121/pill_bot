@@ -1,20 +1,17 @@
 from aiogram import Router, F, Bot
 from aiogram.filters import StateFilter
-from aiogram.types import (
-    Message, CallbackQuery,
-    InlineKeyboardButton, InlineKeyboardMarkup
-)
+from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.storage.redis import Redis
 
 from app.states.user import AdSearchStates
 from app.keyboards.user import AdSearchKeyboards
-from app.filters import AdTypeFilter, AdModerationCallbackFilter
+from app.filters import AdTypeFilter
 from app.text.user import AdSearchText
 from app.dao.holder import HolderDAO
 from app.models.dto import User
-from app.keyboards.admin import AdModerationKeyboards
+from app.services.admin import create_ad_moderation_keyboard
 
 
 router: Router = Router()
@@ -227,25 +224,11 @@ async def append_ad_to_favorites(
     F.data == "report_ad"
 )
 async def report_ad(callback: CallbackQuery, state: FSMContext, bot: Bot):
-    dct = await state.get_data()
-
-    ad_moderation = InlineKeyboardButton(
-        text='Модерация',
-        callback_data=AdModerationCallbackFilter(
-            callback_data='ad_moderation',
-            ad_owner_id=dct['ad_owner_id'],
-            ad_id=dct['ad_id']
-        ).pack()
+    fsm_storage = await state.get_data()
+    ad_moderation_keyboard = create_ad_moderation_keyboard(
+        ad_id=fsm_storage['ad_id'],
+        ad_owner_id=fsm_storage['ad_owner_id']
     )
-
-    ad_moderation_keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                ad_moderation
-            ]
-        ]
-    )
-
     await bot.send_message(
             chat_id=-4164822207,
             text=callback.message.text,

@@ -50,7 +50,7 @@ class AdvertismentDAO(BaseDAO[Advertisment]):
         ad = result.scalars().first()
         return ad
 
-    async def create_ad(self, user_id, FSM_dict: dict):
+    async def create_ad(self, user_id, FSM_dict: dict) -> Advertisment:
         new_ad = Advertisment(
             user_id=user_id,
             ad_type=TypeOfAd[FSM_dict['ad_type']],
@@ -61,3 +61,4 @@ class AdvertismentDAO(BaseDAO[Advertisment]):
         )
         self.save(new_ad)
         await self.session.commit()
+        return new_ad

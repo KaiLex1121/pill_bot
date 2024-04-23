@@ -47,16 +47,19 @@ async def genereal_to_main_menu(
     state: FSMContext,
     user: User
 ):
-    try:
-        await message.edit_reply_markup()
-    except TelegramBadRequest:
-        pass
     if user.is_admin:
         keyboard = AdminMainKeyboards.main_window
     else:
         keyboard = MainKeyboards.main_window
-    await message.edit_text(
+    await state.set_state(MainStates.MAIN_DIALOG)
+    try:
+        await message.edit_reply_markup()
+        await message.edit_text(
             text=MainText.main_window,
             reply_markup=keyboard
         )
-    await state.set_state(MainStates.MAIN_DIALOG)
+    except TelegramBadRequest:
+        await message.answer(
+            text=MainText.main_window,
+            reply_markup=keyboard
+        )

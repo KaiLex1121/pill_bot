@@ -1,10 +1,10 @@
-from datetime import timedelta, datetime
+from typing import Literal
+import datetime
 
 from sqlalchemy import and_, func, update
 from sqlalchemy.future import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
 
 from app.dao.base import BaseDAO
 from app.models.database import User, Advertisment
@@ -28,7 +28,23 @@ class UserDAO(BaseDAO[User]):
 
         return result.unique().scalar()
 
-    async def ban_user_by_id(self, db_id):
+    async def ban_user_by_username(self, username):
+        await self.session.execute(
+            update(self.model)
+            .where(self.model.username == username)
+            .values(is_banned=True)
+        )
+        await self.commit()
+
+    async def unban_user_by_username(self, username):
+        await self.session.execute(
+            update(self.model)
+            .where(self.model.username == username)
+            .values(is_banned=False)
+        )
+        await self.commit()
+
+    async def ban_user_by_db_id(self, db_id):
         await self.session.execute(
             update(self.model)
             .where(self.model.id == db_id)
@@ -36,13 +52,45 @@ class UserDAO(BaseDAO[User]):
         )
         await self.commit()
 
-    async def unban_user_by_id(self, db_id):
+    async def unban_user_by_db_id(self, db_id):
         await self.session.execute(
             update(self.model)
             .where(self.model.id == db_id)
             .values(is_banned=False)
         )
         await self.commit()
+
+    async def get_required_users_count_for_required_day(
+        self,
+        required_type: Literal['new_users', 'active_users'],
+        days_ago: int = 0
+    ) -> int:
+        required_date = datetime.date.today() - datetime.timedelta(days_ago)
+        required_date_start = datetime.datetime(
+            required_date.year,
+            required_date.month,
+            required_date.day
+        )
+        required_date_end = datetime.datetime(
+            required_date.year,
+            required_date.month,
+            required_date.day,
+            23, 59, 59
+        )
+        if required_type == 'new_users':
+            required_field = self.model.created_at
+        elif required_type == "active_users":
+            required_field = self.model.updated_at
+        result = await self.session.execute(
+            select(func.count(self.model.id))
+            .where(
+                and_(
+                    required_field >= required_date_start,
+                    required_field <= required_date_end
+                )
+            )
+        )
+        return result.scalar_one()
 
     async def get_for_seven_days(self) -> list[User]:
 

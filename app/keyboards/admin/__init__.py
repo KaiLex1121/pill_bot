@@ -1,3 +1,5 @@
-from .main_window_keyboards import AdminMainKeyboards
-from .broadcast_keyboards import AdminBroadcastKeyboards
-from .ad_moderation_keyboards import AdModerationKeyboards
+from .administration_main_keyboards import AdminMainButtons, AdminMainKeyboards
+from .broadcast_creation_keyboards import BroadcastButtons, BroadcastKeyboards
+from .ad_moderation_keyboards import AdModerationButtons, AdModerationKeyboards
+from .users_moderation_keyboards import UsersModerationButtons, UsersModerationKeyboards
+from .statistic_generation_keyboards import StatisticGenerationButtons, StatisticGenerationKeyboards

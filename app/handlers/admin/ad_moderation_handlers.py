@@ -1,13 +1,12 @@
-from aiogram import Router, F, Bot
-from aiogram.filters import StateFilter
-from aiogram.types import Message, CallbackQuery, ContentType
+from aiogram import Router, F
+from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import default_state
+
 
 from app.dao.holder import HolderDAO
-from app.models.dto import User
 from app.filters import AdModerationCallbackFilter
 from app.keyboards.admin import AdModerationKeyboards
+
 
 router: Router = Router()
 
@@ -76,7 +75,7 @@ async def ban_ad_owner(
 ):
     dct = await state.get_data()
     ad_owner_id = dct['ad_owner_id']
-    await dao.user.ban_user_by_id(ad_owner_id)
+    await dao.user.ban_user_by_db_id(ad_owner_id)
     await callback.answer(
         text="Пользователь забанен",
         reply_markup=callback.message.reply_markup
@@ -93,7 +92,7 @@ async def unban_ad_owner(
 ):
     dct = await state.get_data()
     ad_owner_id = dct['ad_owner_id']
-    await dao.user.unban_user_by_id(ad_owner_id)
+    await dao.user.unban_user_by_db_id(ad_owner_id)
     await callback.answer(
         text="Пользователь разбанен",
         reply_markup=callback.message.reply_markup

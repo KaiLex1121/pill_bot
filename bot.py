@@ -18,13 +18,16 @@ from app.handlers.user import (
     user_ads_handlers, ad_search_handlers
 )
 from app.handlers.admin import (
-    administration_main_handlers, moderation_handlers
+    ad_moderation_handlers, administration_main_handlers,
+    broadcast_creation_handlers, users_moderation_handlers,
+    statistic_generation_hanlders
 )
-from app.config.main_config import load_config, Config
 from app.middlewares import (
     ConfigMiddleware, DBMiddleware,
-    RedisMiddleware, LoadDataMiddleware
+    RedisMiddleware, LoadDataMiddleware,
+    UserBanMiddleware
 )
+from app.config.main_config import load_config, Config
 from app.models.database.base import create_pool
 
 
@@ -37,7 +40,10 @@ def setup_handlers(dp: Dispatcher):
     dp.include_router(user_ads_handlers.router)
     dp.include_router(ad_search_handlers.router)
     dp.include_router(administration_main_handlers.router)
-    dp.include_router(moderation_handlers.router)
+    dp.include_router(ad_moderation_handlers.router)
+    dp.include_router(users_moderation_handlers.router)
+    dp.include_router(broadcast_creation_handlers.router)
+    dp.include_router(statistic_generation_hanlders.router)
 
 
 def setup_middlewares(
@@ -50,6 +56,7 @@ def setup_middlewares(
     dp.update.outer_middleware(DBMiddleware(pool))
     dp.update.outer_middleware(RedisMiddleware(redis))
     dp.update.outer_middleware(LoadDataMiddleware())
+    dp.update.outer_middleware(UserBanMiddleware())
 
 
 def get_storage(config: Config) -> Union[MemoryStorage, RedisStorage]:

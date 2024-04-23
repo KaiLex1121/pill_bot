@@ -1,20 +1,18 @@
-from asyncio import create_task, sleep
-
 from aiogram import Router, F, Bot
-from aiogram.filters import StateFilter, or_f, and_f
+from aiogram.filters import StateFilter
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
-from aiogram.exceptions import TelegramBadRequest
 
 from .genereal_handlers import general_back_to_main_menu
 from app.services.user import find_message_to_delete
+from app.services.admin import create_ad_moderation_keyboard
 from app.states.user import AdCreationStates
 from app.keyboards.user import AdCreationKeyboards
 from app.text.user import AdCreationText
 from app.dao.holder import HolderDAO
 from app.filters import AdTypeFilter, DeliveryTypeFilter
-from app.enums.advertisment import TypeOfDelivery, TypeOfAd
 from app.models.dto.user import User
+
 
 router: Router = Router()
 
@@ -161,38 +159,33 @@ async def fill_additional_text(
     F.text
 )
 async def show_ad_preview(message: Message, state: FSMContext, bot: Bot):
-    dct = await state.get_data()
+    fsm_storage = await state.get_data()
     if message.text.strip() != AdCreationText.cancel_ad_creating:
+        additional_text = message.text
+        ad_text = AdCreationText.show_ad_preview(
+                    ad_type=fsm_storage['ad_type'],
+                    city=fsm_storage['city'],
+                    drugs=fsm_storage['drugs'],
+                    delivery_type=fsm_storage['delivery_type'],
+                    additional_text=additional_text,
+                    username=message.from_user.username
+                )
         await state.update_data(
-            {
-                'username': message.from_user.username
+            {   'additional_text': additional_text,
+                'ad_text': ad_text
             }
         )
         await bot.edit_message_reply_markup(
             chat_id=message.chat.id,
-            message_id=dct['message_to_delete']
+            message_id=fsm_storage['message_to_delete']
         )
         await message.answer(
-            text=AdCreationText.show_ad_preview(
-                ad_type=dct['ad_type'],
-                city=dct['city'],
-                drugs=dct['drugs'],
-                delivery_type=dct['delivery_type'],
-                additional_text=dct['additional_text'],
-                username=message.from_user.username
-            ),
+            text=ad_text,
             reply_markup=AdCreationKeyboards.confirm_ad_creation
         )
     else:
         await message.edit_text(
-            text=AdCreationText.show_ad_preview(
-                ad_type=dct['ad_type'],
-                city=dct['city'],
-                drugs=dct['drugs'],
-                delivery_type=dct['delivery_type'],
-                additional_text=dct['additional_text'],
-                username=dct['username']
-            ),
+            text=fsm_storage['ad_text'],
             reply_markup=AdCreationKeyboards.confirm_ad_creation
         )
     await state.set_state(AdCreationStates.CONFIRM_AD_CREATION)
@@ -206,17 +199,28 @@ async def confirm_ad_creation(
     callback: CallbackQuery,
     state: FSMContext,
     dao: HolderDAO,
-    user: User
+    user: User,
+    bot: Bot
 ):
-    fsm_dict = await state.get_data()
-    await dao.advertisment.create_ad(
+    fsm_storage = await state.get_data()
+    ad_text = fsm_storage['ad_text']
+    created_ad = await dao.advertisment.create_ad(
         user_id=user.db_id,
-        FSM_dict=fsm_dict
+        FSM_dict=fsm_storage
+    )
+    ad_moderation_keyboard = create_ad_moderation_keyboard(
+        ad_id=created_ad.id,
+        ad_owner_id=user.db_id
+    )
+    await bot.send_message(
+        chat_id=-4144959991,
+        text=ad_text,
+        reply_markup=ad_moderation_keyboard
     )
     await callback.message.answer(
         text="Объявление сохраненно. Вы можете взаимодействовать с ним тут: Главное меню > Профиль > Мои бъявления > Созданные > выбираете нужное"
     )
-    await general_back_to_main_menu(callback, state)
+    await general_back_to_main_menu(callback, state, user)
 
 
 @router.callback_query(

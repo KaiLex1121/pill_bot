@@ -12,11 +12,11 @@ class AdminMainButtons:
     )
 
     statistic = InlineKeyboardButton(
-        text="Статистика", callback_data="statistic"
+        text="Статистика", callback_data="get_statistic"
     )
 
     broadcast = InlineKeyboardButton(
-        text="Создать рассылку", callback_data="broadcast"
+        text="Создать рассылку", callback_data="create_broadcast"
     )
 
     users_moderation = InlineKeyboardButton(
@@ -44,17 +44,27 @@ class AdminMainKeyboards:
     admin_panel = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                AdminMainButtons.broadcast,
+                AdminMainButtons.broadcast
             ],
             [
                 AdminMainButtons.statistic
             ],
             [
-                AdminMainButtons.users_moderation,
+                AdminMainButtons.users_moderation
+            ],
+            [
                 AdminMainButtons.ads_moderation
             ],
             [
                 GeneralButtons.to_main_menu
+            ]
+        ]
+    )
+
+    to_admin_panel = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                AdminMainButtons.to_admin_panel,
             ]
         ]
     )
