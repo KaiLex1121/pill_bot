@@ -29,6 +29,7 @@ class Advertisment(Base):
         lazy="selectin"
     )
     ad_type: Mapped[TypeOfAd] = mapped_column(Enum(TypeOfAd))
+    country: Mapped[str] = mapped_column()
     city: Mapped[str] = mapped_column()
     drugs: Mapped[str] = mapped_column()
     delivery_type: Mapped[TypeOfDelivery] = mapped_column(Enum(TypeOfDelivery))

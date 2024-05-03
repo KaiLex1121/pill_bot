@@ -3,13 +3,9 @@ version: '3'
 services:
 
   bot:
-    image: "link_bot"
+    image: "pill_bot"
+    container_name: 'pill_bot_1'
     stop_signal: SIGINT
-    build:
-      context: .
-    working_dir: "/app"
-    volumes:
-      - .:/app
     command: python3 -m bot
     restart: always
     env_file:
@@ -25,7 +21,7 @@ services:
     env_file:
       - ".env"
     volumes:
-      - /home/kailex/redis/data:/redis/data
+      - /home/kailex/docker_volumes/redis/pill_bot:/data
 
   pg_database:
     image: postgres:13-alpine
@@ -33,7 +29,7 @@ services:
       - "5439:5432"
     restart: always
     volumes:
-      - /home/kailex/pgdata:/var/lib/postgresql/data
+      - /home/kailex/docker_volumes/postgres/pill_bot:/var/lib/postgresql/data
     command: "postgres -c max_connections=150
             -c shared_buffers=512MB -c effective_cache_size=1536MB
             -c maintenance_work_mem=128MB -c checkpoint_completion_target=0.9 -c wal_buffers=16MB

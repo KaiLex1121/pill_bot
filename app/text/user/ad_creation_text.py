@@ -11,6 +11,7 @@ class AdCreationText:
         ad_type: str,
         city: str,
         drugs: str,
+        country: str,
         delivery_type: str,
         additional_text: str | None,
         username: str | None
@@ -20,6 +21,7 @@ class AdCreationText:
 <b>Превью анкеты. Здесь можно посмотреть ее параметры и изменить их (в будущем, коненчно) </b>
 
 Я <b>{TypeOfAd[ad_type].value.lower()}</b> таблеточки
+<b>Страна:</b> {country}
 <b>Город:</b> {city}
 <b>Лекарства:</b> {drugs}
 <b>Способ доставки:</b> {TypeOfDelivery[delivery_type].value}

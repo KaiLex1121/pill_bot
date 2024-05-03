@@ -26,10 +26,12 @@ async def return_to_current_handler(
     bot: Bot,
 ):
     current_state = await state.get_state()
-    if current_state == AdCreationStates.FILL_CITY:
+    if current_state == AdCreationStates.FILL_COUNTRY:
         await fill_ad_type(callback, state)
+    if current_state == AdCreationStates.FILL_CITY:
+        await fill_country(callback, state)
     elif current_state == AdCreationStates.FILL_DRUGS:
-        await fill_city(callback, state)
+        await fill_city(callback.message, state, bot)
     elif current_state == AdCreationStates.FILL_DELIVERY_TYPE:
         await fill_drugs(callback.message, state, bot)
     elif current_state == AdCreationStates.FILL_ADDITIONAL_TEXT:
@@ -46,19 +48,20 @@ async def fill_ad_type(callback: CallbackQuery, state: FSMContext):
         text="Выбери тип объявления. Хочешь найти таблетки или отдать",
         reply_markup=AdCreationKeyboards.fill_ad_type
     )
-    await state.set_state(AdCreationStates.FILL_CITY)
+    await state.set_state(AdCreationStates.FILL_COUNTRY)
+
 
 
 @router.callback_query(
-    StateFilter(AdCreationStates.FILL_CITY),
+    StateFilter(AdCreationStates.FILL_COUNTRY),
     AdTypeFilter()
 )
-async def fill_city(
+async def fill_country(
     callback: CallbackQuery,
     state: FSMContext,
 ):
     message_to_delete = await callback.message.edit_text(
-        text="Укажи свой или ближайший крупный город, чтобы твое объявление было легче найти",
+        text="Укажи страну. Желательно написать ее название на русском языке, не сокращая его",
         reply_markup=AdCreationKeyboards.to_main_menu
     )
     if callback.data != "to_current_creation_handler":
@@ -68,6 +71,41 @@ async def fill_city(
                 'message_to_delete': message_to_delete.message_id
             }
         )
+    await state.set_state(AdCreationStates.FILL_CITY)
+
+
+@router.message(
+    StateFilter(AdCreationStates.FILL_CITY),
+    F.text,
+)
+async def fill_city(
+    message: Message,
+    state: FSMContext,
+    bot: Bot
+):
+    current_message_to_delete = await find_message_to_delete(state)
+    current_text = "Укажи свой или ближайший крупный город, чтобы твое объявление было легче найти. Желательно написать его название полностью, не сокращая его"
+    if message.text != AdCreationText.cancel_ad_creating:
+        message_to_delete = await message.answer(
+            text=current_text,
+            reply_markup=AdCreationKeyboards.to_main_menu
+        )
+        await bot.edit_message_reply_markup(
+            chat_id=message.chat.id,
+            message_id=current_message_to_delete
+        )
+        await state.update_data(
+            {
+                'country': message.text,
+                'message_to_delete': message_to_delete.message_id
+            }
+        )
+    else:
+        await message.edit_text(
+            text=current_text,
+            reply_markup=AdCreationKeyboards.to_main_menu
+        )
+
     await state.set_state(AdCreationStates.FILL_DRUGS)
 
 
@@ -78,10 +116,12 @@ async def fill_city(
 async def fill_drugs(message: Message, state: FSMContext, bot: Bot):
 
     current_message_to_delete = await find_message_to_delete(state)
-
+    current_text = "Добавь лекарства, которые хочешь найти или отдать: можешь указать действующее вещество или торговое название. \
+        Если лекарств несколько, можно перечислить их через запятую или каждое на отдельной строке, чтобы другим было удобно читать твое объявление"
     if message.text != AdCreationText.cancel_ad_creating:
+
         message_to_delete = await message.answer(
-            text="Добавь лекарства, которые хочешь найти или отдать",
+            text=current_text,
             reply_markup=AdCreationKeyboards.to_main_menu
         )
         await bot.edit_message_reply_markup(
@@ -96,7 +136,7 @@ async def fill_drugs(message: Message, state: FSMContext, bot: Bot):
         )
     else:
         await message.edit_text(
-            text="Добавь лекарства, которые хочешь найти или отдать",
+            text=current_text,
             reply_markup=AdCreationKeyboards.to_main_menu
         )
 
@@ -164,6 +204,7 @@ async def show_ad_preview(message: Message, state: FSMContext, bot: Bot):
         additional_text = message.text
         ad_text = AdCreationText.show_ad_preview(
                     ad_type=fsm_storage['ad_type'],
+                    country=fsm_storage['country'],
                     city=fsm_storage['city'],
                     drugs=fsm_storage['drugs'],
                     delivery_type=fsm_storage['delivery_type'],

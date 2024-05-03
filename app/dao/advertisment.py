@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.database import Advertisment
 from app.enums.advertisment import TypeOfDelivery, TypeOfAd
 from sqlalchemy.future import select
-from sqlalchemy import and_, desc, func, update
+from sqlalchemy import desc, func, update
 
 
 class AdvertismentDAO(BaseDAO[Advertisment]):
@@ -31,6 +31,7 @@ class AdvertismentDAO(BaseDAO[Advertisment]):
         ad_type: str,
         drugs: str,
         city: str,
+        country: str,
         offset_: int,
         limit_: int,
     ) -> Advertisment:
@@ -39,6 +40,7 @@ class AdvertismentDAO(BaseDAO[Advertisment]):
             conditions.append(self.model.ad_type == TypeOfAd[ad_type])
         conditions.append(self.model.city.ilike(f"%{city}%"))
         conditions.append(self.model.drugs.ilike(f"%{drugs}%"))
+        conditions.append(self.model.country.ilike(f"%{country}%"))
         conditions.append(self.model.is_hidden == False)
         result = await self.session.execute(
             select(self.model)
@@ -54,6 +56,7 @@ class AdvertismentDAO(BaseDAO[Advertisment]):
         new_ad = Advertisment(
             user_id=user_id,
             ad_type=TypeOfAd[FSM_dict['ad_type']],
+            country=FSM_dict['country'],
             city=FSM_dict['city'],
             drugs=FSM_dict['drugs'],
             delivery_type=TypeOfDelivery[FSM_dict['delivery_type']],

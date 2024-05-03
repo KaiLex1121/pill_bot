@@ -28,10 +28,12 @@ async def return_to_current_handler(
     dao: HolderDAO
 ):
     current_state = await state.get_state()
-    if current_state == AdSearchStates.FILL_CITY:
+    if current_state == AdSearchStates.FILL_COUNTRY:
         await fill_ad_type(callback, state)
+    if current_state == AdSearchStates.FILL_CITY:
+        await fill_country(callback, state)
     elif current_state == AdSearchStates.FILL_DRUGS:
-        await fill_city(callback, state)
+        await fill_city(callback.message, state, bot)
     elif current_state == AdSearchStates.CONFIRM_AD_SEARCH:
         await fill_drugs(callback.message, state, bot)
     elif current_state == AdSearchStates.SHOW_FOUND_ADS:
@@ -48,22 +50,21 @@ async def fill_ad_type(callback: CallbackQuery, state: FSMContext):
         text="Выбери тип объявления. Ты хочешь посмотреть объявления тех, кто ищет лекарства, отдает их или все объявления",
         reply_markup=AdSearchKeyboards.fill_ad_type
     )
-    await state.set_state(AdSearchStates.FILL_CITY)
+    await state.set_state(AdSearchStates.FILL_COUNTRY)
 
 
 @router.callback_query(
-    StateFilter(AdSearchStates.FILL_CITY),
+    StateFilter(AdSearchStates.FILL_COUNTRY),
     AdTypeFilter()
 )
-async def fill_city(
+async def fill_country(
     callback: CallbackQuery,
     state: FSMContext,
 ):
     message_to_delete = await callback.message.edit_text(
-        text="Введи город, в котором хочешь найти лекарство. Или укажи ближайший крупный - это увеличит количество объявлений",
+        text="Уажи страну, в которой хочешь найти лекарства. Желательно написать ее название на русском языке, не сокращая его",
         reply_markup=AdSearchKeyboards.to_main_menu
     )
-
     if callback.data != "to_current_find_handler":
         await state.update_data(
             {
@@ -71,7 +72,40 @@ async def fill_city(
                 'ad_type': callback.data
             }
         )
+    await state.set_state(AdSearchStates.FILL_CITY)
 
+
+@router.message(
+    StateFilter(AdSearchStates.FILL_CITY),
+    F.text
+)
+async def fill_city(
+    message: Message,
+    state: FSMContext,
+    bot: Bot
+):
+    dct = await state.get_data()
+    current_text = "Укажи город, в котором хочешь найти лекарства. Или укажи ближайший крупный - это увеличит количество найденных объявлений"
+    if message.text.strip() != "Отменить поиск и вернуться в главное меню?":
+        message_to_delete = await message.answer(
+            text=current_text,
+            reply_markup=AdSearchKeyboards.to_main_menu
+        )
+        await bot.edit_message_reply_markup(
+            chat_id=message.chat.id,
+            message_id=dct['message_to_delete']
+        )
+        await state.update_data(
+            {
+                'country': message.text,
+                'message_to_delete': message_to_delete.message_id
+            }
+        )
+    else:
+        await message.edit_text(
+            text=current_text,
+            reply_markup=AdSearchKeyboards.to_main_menu
+        )
     await state.set_state(AdSearchStates.FILL_DRUGS)
 
 
@@ -113,6 +147,7 @@ async def confirm_ad_search(message: Message, state: FSMContext, bot: Bot):
     if message.text.strip() != "Отменить поиск и вернуться в главное меню?":
         await message.answer(
             text=AdSearchText.show_search_preview(
+                country=dct['country'],
                 city=dct['city'],
                 drugs=message.text
             ),
@@ -130,6 +165,7 @@ async def confirm_ad_search(message: Message, state: FSMContext, bot: Bot):
     else:
         await message.edit_text(
             text=AdSearchText.show_search_preview(
+                country=dct['country'],
                 city=dct['city'],
                 drugs=dct['drugs']
             ),
@@ -164,6 +200,7 @@ async def show_next_ad(
         ad_type=dct['ad_type'],
         city=dct['city'],
         drugs=dct['drugs'],
+        country=dct['country'],
         offset_=current_offset,
         limit_=1,
     )

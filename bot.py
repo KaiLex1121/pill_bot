@@ -72,18 +72,16 @@ def get_storage(config: Config) -> Union[MemoryStorage, RedisStorage]:
     return storage
 
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(filename)s:%(lineno)d #%(levelname)-8s [%(asctime)s] - %(name)s - %(message)s",
+)
 logger = logging.getLogger(__name__)
-log_level = logging.INFO
+logger.level = logging.INFO
 
 
 async def main() -> None:
-
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(filename)s:%(lineno)d #%(levelname)-8s [%(asctime)s] - %(name)s - %(message)s",
-    )
-    logger.info("Bot has started")
-
+    logger.info("Bot has been started")
     config = load_config('.env')
     storage = get_storage(config=config)
     bot = Bot(
@@ -96,7 +94,6 @@ async def main() -> None:
     dp = Dispatcher(storage=storage)
     setup_handlers(dp)
     setup_middlewares(dp, create_pool(config.db), config, storage.redis)
-
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
@@ -105,4 +102,4 @@ if __name__ == '__main__':
     try:
         asyncio.run(main())
     finally:
-        logger.error("Bot has been stopped")
+        logger.critical("Bot has been stopped")

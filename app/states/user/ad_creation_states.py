@@ -3,6 +3,7 @@ from aiogram.filters.state import StatesGroup, State
 
 class AdCreationStates(StatesGroup):
     ADS_WINDOW = State()
+    FILL_COUNTRY = State()
     FILL_ADD_TYPE = State()
     FILL_CITY = State()
     FILL_DRUGS = State()

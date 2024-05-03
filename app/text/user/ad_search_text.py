@@ -7,6 +7,7 @@ class AdSearchText:
 
     @staticmethod
     def show_search_preview(
+        country: str,
         city: str,
         drugs: str,
     ) -> str:
@@ -14,6 +15,7 @@ class AdSearchText:
         text = f"""
 <b>Это превью твоего поискового запроса. Здесь можно посмотреть его параметры и изменить их (в будущем, коненчно) </b>
 
+<b>Страна:</b> {country}
 <b>Город:</b> {city}
 <b>Лекарства:</b> {drugs}
 """
